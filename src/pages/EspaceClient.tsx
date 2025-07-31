@@ -258,55 +258,83 @@ const EspaceClient = () => {
                               <div className="flex space-x-2">
                                 <Dialog>
                                   <DialogTrigger asChild>
-                                    <Button variant="outline" size="sm">
+                                    <Button variant="outline" size="sm" className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-300">
                                       <Edit className="h-4 w-4 mr-1" />
                                       Modifier
                                     </Button>
                                   </DialogTrigger>
-                                  <DialogContent>
+                                  <DialogContent className="max-w-md">
                                     <DialogHeader>
-                                      <DialogTitle>Modifier le rendez-vous</DialogTitle>
+                                      <DialogTitle className="flex items-center gap-2">
+                                        <Edit className="h-5 w-5 text-blue-600" />
+                                        Modifier le rendez-vous
+                                      </DialogTitle>
                                       <DialogDescription>
-                                        Souhaitez-vous modifier ce rendez-vous ? Notre équipe vous recontactera.
+                                        Choisissez le type de modification que vous souhaitez effectuer. Notre équipe vous recontactera dans les plus brefs délais.
                                       </DialogDescription>
                                     </DialogHeader>
-                                    <div className="flex space-x-4 mt-4">
+                                    <div className="space-y-3 mt-4">
                                       <Button 
                                         onClick={() => handleModifierRdv(rdv.id)}
                                         disabled={isLoading}
-                                        className="flex-1 btn-primary"
+                                        className="w-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2"
                                       >
-                                        Demander une modification
+                                        <Calendar className="h-4 w-4" />
+                                        Changer la date/heure
                                       </Button>
+                                      <Button 
+                                        onClick={() => handleModifierRdv(rdv.id)}
+                                        disabled={isLoading}
+                                        variant="outline"
+                                        className="w-full border-blue-300 text-blue-700 hover:bg-blue-50 flex items-center justify-center gap-2"
+                                      >
+                                        <Car className="h-4 w-4" />
+                                        Modifier l'intervention
+                                      </Button>
+                                      <p className="text-xs text-muted-foreground text-center mt-3">
+                                        Un conseiller vous contactera pour finaliser la modification
+                                      </p>
                                     </div>
                                   </DialogContent>
                                 </Dialog>
                                 
                                 <Dialog>
                                   <DialogTrigger asChild>
-                                    <Button variant="outline" size="sm">
+                                    <Button variant="outline" size="sm" className="bg-red-50 text-red-700 hover:bg-red-100 border-red-300">
                                       <Trash2 className="h-4 w-4 mr-1" />
                                       Annuler
                                     </Button>
                                   </DialogTrigger>
-                                  <DialogContent>
+                                  <DialogContent className="max-w-md">
                                     <DialogHeader>
-                                      <DialogTitle>Annuler le rendez-vous</DialogTitle>
+                                      <DialogTitle className="flex items-center gap-2">
+                                        <AlertCircle className="h-5 w-5 text-red-600" />
+                                        Annuler le rendez-vous
+                                      </DialogTitle>
                                       <DialogDescription>
-                                        Êtes-vous sûr de vouloir annuler ce rendez-vous ? Cette action est irréversible.
+                                        Êtes-vous sûr de vouloir annuler ce rendez-vous ? Cette action est irréversible et vous devrez reprendre un nouveau rendez-vous si nécessaire.
                                       </DialogDescription>
                                     </DialogHeader>
-                                    <div className="flex space-x-4 mt-4">
-                                      <Button variant="outline" className="flex-1">
+                                    <div className="bg-red-50 p-4 rounded-lg mt-4">
+                                      <div className="flex items-start gap-3">
+                                        <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+                                        <div className="text-sm text-red-800">
+                                          <p className="font-medium">Rendez-vous à annuler :</p>
+                                          <p>{format(new Date(rdv.date), 'EEEE d MMMM yyyy', { locale: fr })} à {rdv.heure}</p>
+                                          <p>{rdv.typeIntervention}</p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="flex space-x-3 mt-6">
+                                      <Button variant="outline" className="flex-1 border-gray-300">
                                         Non, garder
                                       </Button>
                                       <Button 
                                         onClick={() => handleAnnulerRdv(rdv.id)}
                                         disabled={isLoading}
-                                        variant="destructive"
-                                        className="flex-1"
+                                        className="flex-1 bg-red-600 hover:bg-red-700 text-white"
                                       >
-                                        Oui, annuler
+                                        {isLoading ? "Annulation..." : "Oui, annuler"}
                                       </Button>
                                     </div>
                                   </DialogContent>

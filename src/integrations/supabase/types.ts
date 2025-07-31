@@ -14,7 +14,174 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      demandes_maintenance: {
+        Row: {
+          commentaire: string | null
+          created_at: string | null
+          date_preference: string | null
+          email_client: string | null
+          id: number
+          nom_client: string | null
+          statut: string | null
+          telephone_client: string | null
+          type_maintenance: string | null
+          user_id: string | null
+        }
+        Insert: {
+          commentaire?: string | null
+          created_at?: string | null
+          date_preference?: string | null
+          email_client?: string | null
+          id?: number
+          nom_client?: string | null
+          statut?: string | null
+          telephone_client?: string | null
+          type_maintenance?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          commentaire?: string | null
+          created_at?: string | null
+          date_preference?: string | null
+          email_client?: string | null
+          id?: number
+          nom_client?: string | null
+          statut?: string | null
+          telephone_client?: string | null
+          type_maintenance?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      devis: {
+        Row: {
+          adresse_client: string | null
+          created_at: string | null
+          email_client: string | null
+          id: number
+          nom_client: string | null
+          numero_devis: string | null
+          prix_unitaire: number | null
+          service: string | null
+          telephone_client: string | null
+          total_ht: number | null
+          total_ttc: number | null
+          tva: number | null
+          user_id: string | null
+        }
+        Insert: {
+          adresse_client?: string | null
+          created_at?: string | null
+          email_client?: string | null
+          id?: number
+          nom_client?: string | null
+          numero_devis?: string | null
+          prix_unitaire?: number | null
+          service?: string | null
+          telephone_client?: string | null
+          total_ht?: number | null
+          total_ttc?: number | null
+          tva?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          adresse_client?: string | null
+          created_at?: string | null
+          email_client?: string | null
+          id?: number
+          nom_client?: string | null
+          numero_devis?: string | null
+          prix_unitaire?: number | null
+          service?: string | null
+          telephone_client?: string | null
+          total_ht?: number | null
+          total_ttc?: number | null
+          tva?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      feedback_clients: {
+        Row: {
+          commentaire: string | null
+          created_at: string | null
+          email_client: string | null
+          id: number
+          nom_client: string | null
+          note: number | null
+          rdv_id: number | null
+          service: string | null
+          user_id: string | null
+        }
+        Insert: {
+          commentaire?: string | null
+          created_at?: string | null
+          email_client?: string | null
+          id?: number
+          nom_client?: string | null
+          note?: number | null
+          rdv_id?: number | null
+          service?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          commentaire?: string | null
+          created_at?: string | null
+          email_client?: string | null
+          id?: number
+          nom_client?: string | null
+          note?: number | null
+          rdv_id?: number | null
+          service?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      rendez_vous: {
+        Row: {
+          created_at: string | null
+          date_annulation: string | null
+          date_modification: string | null
+          date_rdv: string | null
+          email_client: string | null
+          heure_rdv: string | null
+          id: number
+          nom_client: string | null
+          service: string | null
+          statut: string | null
+          telephone_client: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          date_annulation?: string | null
+          date_modification?: string | null
+          date_rdv?: string | null
+          email_client?: string | null
+          heure_rdv?: string | null
+          id?: number
+          nom_client?: string | null
+          service?: string | null
+          statut?: string | null
+          telephone_client?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          date_annulation?: string | null
+          date_modification?: string | null
+          date_rdv?: string | null
+          email_client?: string | null
+          heure_rdv?: string | null
+          id?: number
+          nom_client?: string | null
+          service?: string | null
+          statut?: string | null
+          telephone_client?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
