@@ -5,7 +5,7 @@
 const N8N_WEBHOOKS = {
   RESERVATION: 'http://localhost:5678/webhook-test/reservation',
   MODIFICATION: import.meta.env.VITE_N8N_WEBHOOK_MODIFICATION || 'https://your-n8n-instance.com/webhook/modification',
-  ANNULATION: import.meta.env.VITE_N8N_WEBHOOK_ANNULATION || 'https://your-n8n-instance.com/webhook/annulation',
+  ANNULATION: 'http://localhost:5678/webhook-test/cancel-reservation',
   SATISFACTION: import.meta.env.VITE_N8N_WEBHOOK_SATISFACTION || 'https://your-n8n-instance.com/webhook/satisfaction',
   RAPPEL_MAINTENANCE: import.meta.env.VITE_N8N_WEBHOOK_MAINTENANCE || 'https://your-n8n-instance.com/webhook/maintenance',
   CONTACT: import.meta.env.VITE_N8N_WEBHOOK_CONTACT || 'https://your-n8n-instance.com/webhook/contact',
