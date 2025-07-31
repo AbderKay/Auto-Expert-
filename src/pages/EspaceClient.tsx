@@ -22,7 +22,6 @@ import {
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { modifierRendezVous, annulerRendezVous, getUserId } from '@/utils/n8nApi';
-import { supabase } from '@/integrations/supabase/client';
 
 // Données mockées pour la démonstration
 const mockRendezVous = [
@@ -72,88 +71,21 @@ const mockDevis = [
 const EspaceClient = () => {
   const [rdvAVenir, setRdvAVenir] = useState<any[]>([]);
   const [rdvPasses, setRdvPasses] = useState<any[]>([]);
-  const [devis, setDevis] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [devis, setDevis] = useState(mockDevis);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Charger les données depuis Supabase
   useEffect(() => {
-    const loadRendezVous = async () => {
-      try {
-        const userId = getUserId();
-        
-        // Récupérer les rendez-vous
-        const { data: rdvData, error: rdvError } = await supabase
-          .from('rendez_vous')
-          .select('*')
-          .eq('user_id', userId)
-          .order('date_rdv', { ascending: true });
-
-        if (rdvError) {
-          console.error('Erreur chargement RDV:', rdvError);
-          return;
-        }
-
-        // Récupérer les devis
-        const { data: devisData, error: devisError } = await supabase
-          .from('devis')
-          .select('*')
-          .eq('user_id', userId)
-          .order('created_at', { ascending: false });
-
-        if (devisError) {
-          console.error('Erreur chargement devis:', devisError);
-        }
-
-        // Transformer les données RDV
-        const rdvTransformed = rdvData?.map(rdv => ({
-          id: rdv.id.toString(),
-          date: rdv.date_rdv,
-          heure: rdv.heure_rdv,
-          vehicule: 'Véhicule client', // Vous pouvez ajouter cette info à la table
-          typeIntervention: rdv.service || 'Service non spécifié',
-          statut: rdv.statut,
-          technicien: 'Technicien AutoExpert',
-          commentaires: ''
-        })) || [];
-
-        // Séparer les RDV à venir et passés
-        const maintenant = new Date();
-        const aVenir = rdvTransformed.filter(rdv => 
-          new Date(rdv.date) >= maintenant && rdv.statut !== 'terminé'
-        );
-        const passes = rdvTransformed.filter(rdv => 
-          new Date(rdv.date) < maintenant || rdv.statut === 'terminé'
-        );
-
-        setRdvAVenir(aVenir);
-        setRdvPasses(passes);
-
-        // Transformer les données devis
-        const devisTransformed = devisData?.map(devis => ({
-          id: devis.numero_devis || devis.id.toString(),
-          rdvId: '',
-          date: devis.created_at,
-          montant: parseFloat(devis.total_ttc?.toString() || '0'),
-          statut: 'en_attente',
-          intervention: devis.service || 'Service non spécifié',
-          details: ['Détails du service']
-        })) || [];
-
-        setDevis(devisTransformed);
-
-      } catch (error) {
-        console.error('Erreur:', error);
-        toast({
-          title: '❌ Erreur',
-          description: 'Impossible de charger vos données.',
-          variant: 'destructive',
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadRendezVous();
+    // Séparer les RDV à venir et passés
+    const maintenant = new Date();
+    const aVenir = mockRendezVous.filter(rdv => 
+      new Date(rdv.date) >= maintenant && rdv.statut !== 'terminé'
+    );
+    const passes = mockRendezVous.filter(rdv => 
+      new Date(rdv.date) < maintenant || rdv.statut === 'terminé'
+    );
+    
+    setRdvAVenir(aVenir);
+    setRdvPasses(passes);
   }, []);
 
   const handleModifierRdv = async (rdvId: string) => {
