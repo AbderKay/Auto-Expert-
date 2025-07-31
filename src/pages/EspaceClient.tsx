@@ -443,6 +443,48 @@ const EspaceClient = () => {
                                   </DialogContent>
                                 </Dialog>
                                 
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <Button variant="outline" size="sm" className="bg-red-50 text-red-700 hover:bg-red-100 border-red-300">
+                                      <Trash2 className="h-4 w-4 mr-1" />
+                                      Annuler
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent className="max-w-md">
+                                    <DialogHeader>
+                                      <DialogTitle className="flex items-center gap-2">
+                                        <AlertCircle className="h-5 w-5 text-red-600" />
+                                        Demande d'annulation
+                                      </DialogTitle>
+                                      <DialogDescription>
+                                        Cette intervention est terminée. Voulez-vous faire une demande d'annulation ou de remboursement ?
+                                      </DialogDescription>
+                                    </DialogHeader>
+                                    <div className="bg-yellow-50 p-4 rounded-lg mt-4">
+                                      <div className="flex items-start gap-3">
+                                        <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+                                        <div className="text-sm text-yellow-800">
+                                          <p className="font-medium">Intervention concernée :</p>
+                                          <p>{format(new Date(rdv.date), 'EEEE d MMMM yyyy', { locale: fr })} à {rdv.heure}</p>
+                                          <p>{rdv.typeIntervention}</p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="flex space-x-3 mt-6">
+                                      <Button variant="outline" className="flex-1 border-gray-300">
+                                        Fermer
+                                      </Button>
+                                      <Button 
+                                        onClick={() => handleModifierRdv(rdv.id)}
+                                        disabled={isLoading}
+                                        className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                                      >
+                                        {isLoading ? "Envoi..." : "Faire la demande"}
+                                      </Button>
+                                    </div>
+                                  </DialogContent>
+                                </Dialog>
+                                
                                 <Button 
                                   variant="outline" 
                                   size="sm" 
