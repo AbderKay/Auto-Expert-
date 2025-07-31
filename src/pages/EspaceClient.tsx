@@ -362,42 +362,104 @@ const EspaceClient = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {rdvPasses.map((rdv) => (
-                      <Card key={rdv.id} className="border-l-4 border-l-green-500">
-                        <CardContent className="pt-6">
-                          <div className="flex justify-between items-start">
-                            <div className="space-y-2">
-                              <div className="flex items-center space-x-4">
-                                <div className="flex items-center space-x-2 text-lg font-semibold">
-                                  <Calendar className="h-4 w-4 text-green-600" />
-                                  <span>{format(new Date(rdv.date), 'EEEE d MMMM yyyy', { locale: fr })}</span>
+                    {rdvPasses.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <History className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                        <p>Aucun historique d'intervention</p>
+                      </div>
+                    ) : (
+                      rdvPasses.map((rdv) => (
+                        <Card key={rdv.id} className="border-l-4 border-l-green-500">
+                          <CardContent className="pt-6">
+                            <div className="flex justify-between items-start">
+                              <div className="space-y-2">
+                                <div className="flex items-center space-x-4">
+                                  <div className="flex items-center space-x-2 text-lg font-semibold">
+                                    <Calendar className="h-4 w-4 text-green-600" />
+                                    <span>{format(new Date(rdv.date), 'EEEE d MMMM yyyy', { locale: fr })}</span>
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    <Clock className="h-4 w-4 text-muted-foreground" />
+                                    <span>{rdv.heure}</span>
+                                  </div>
+                                  <CheckCircle className="h-4 w-4 text-green-600" />
                                 </div>
-                                <div className="flex items-center space-x-2">
-                                  <Clock className="h-4 w-4 text-muted-foreground" />
-                                  <span>{rdv.heure}</span>
+                                <div className="flex items-center space-x-2 text-muted-foreground">
+                                  <Car className="h-4 w-4" />
+                                  <span>{rdv.vehicule}</span>
                                 </div>
-                                <CheckCircle className="h-4 w-4 text-green-600" />
+                                <p className="text-sm">
+                                  <strong>Intervention:</strong> {rdv.typeIntervention}
+                                </p>
+                                <p className="text-sm">
+                                  <strong>Technicien:</strong> {rdv.technicien}
+                                </p>
+                                {rdv.commentaires && (
+                                  <p className="text-sm text-muted-foreground">
+                                    <strong>Commentaires:</strong> {rdv.commentaires}
+                                  </p>
+                                )}
                               </div>
-                              <div className="flex items-center space-x-2 text-muted-foreground">
-                                <Car className="h-4 w-4" />
-                                <span>{rdv.vehicule}</span>
+                              <div className="flex space-x-2">
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <Button variant="outline" size="sm" className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-300">
+                                      <Edit className="h-4 w-4 mr-1" />
+                                      Modifier
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent className="max-w-md">
+                                    <DialogHeader>
+                                      <DialogTitle className="flex items-center gap-2">
+                                        <Edit className="h-5 w-5 text-blue-600" />
+                                        Demander une modification
+                                      </DialogTitle>
+                                      <DialogDescription>
+                                        Cette intervention est terminée. Vous pouvez demander une modification ou une intervention complémentaire.
+                                      </DialogDescription>
+                                    </DialogHeader>
+                                    <div className="space-y-3 mt-4">
+                                      <Button 
+                                        onClick={() => handleModifierRdv(rdv.id)}
+                                        disabled={isLoading}
+                                        className="w-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2"
+                                      >
+                                        <Calendar className="h-4 w-4" />
+                                        Nouvelle intervention
+                                      </Button>
+                                      <Button 
+                                        onClick={() => handleModifierRdv(rdv.id)}
+                                        disabled={isLoading}
+                                        variant="outline"
+                                        className="w-full border-blue-300 text-blue-700 hover:bg-blue-50 flex items-center justify-center gap-2"
+                                      >
+                                        <FileText className="h-4 w-4" />
+                                        Signaler un problème
+                                      </Button>
+                                      <p className="text-xs text-muted-foreground text-center mt-3">
+                                        Un conseiller vous contactera pour vous assister
+                                      </p>
+                                    </div>
+                                  </DialogContent>
+                                </Dialog>
+                                
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="bg-green-50 text-green-700 hover:bg-green-100 border-green-300"
+                                  asChild
+                                >
+                                  <a href="/satisfaction" className="flex items-center space-x-2">
+                                    <CheckCircle className="h-4 w-4" />
+                                    <span>Évaluer</span>
+                                  </a>
+                                </Button>
                               </div>
-                              <p className="text-sm">
-                                <strong>Intervention:</strong> {rdv.typeIntervention}
-                              </p>
-                              <p className="text-sm">
-                                <strong>Technicien:</strong> {rdv.technicien}
-                              </p>
                             </div>
-                            <Button asChild variant="outline" size="sm">
-                              <a href="/satisfaction" className="flex items-center space-x-2">
-                                <span>Donner mon avis</span>
-                              </a>
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                          </CardContent>
+                        </Card>
+                      ))
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>

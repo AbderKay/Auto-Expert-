@@ -56,9 +56,11 @@ const Header = () => {
 
           {/* Contact Button */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button variant="outline" size="sm" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
-              <Phone className="h-4 w-4 mr-2" />
-              Contact
+            <Button asChild variant="outline" size="sm" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
+              <a href="tel:0123456789" className="flex items-center space-x-2">
+                <Phone className="h-4 w-4" />
+                <span>01 23 45 67 89</span>
+              </a>
             </Button>
           </div>
 
@@ -102,9 +104,11 @@ const Header = () => {
                   })}
                 </nav>
 
-                <Button className="w-full btn-primary">
-                  <Phone className="h-4 w-4 mr-2" />
-                  Nous Contacter
+                <Button asChild className="w-full btn-primary">
+                  <a href="tel:0123456789" className="flex items-center space-x-2">
+                    <Phone className="h-4 w-4" />
+                    <span>01 23 45 67 89</span>
+                  </a>
                 </Button>
               </div>
             </SheetContent>
