@@ -3,12 +3,12 @@
 
 // URLs des webhooks n8n - À configurer dans votre environnement
 const N8N_WEBHOOKS = {
-  RESERVATION: process.env.VITE_N8N_WEBHOOK_RESERVATION || 'https://your-n8n-instance.com/webhook/reservation',
-  MODIFICATION: process.env.VITE_N8N_WEBHOOK_MODIFICATION || 'https://your-n8n-instance.com/webhook/modification',
-  ANNULATION: process.env.VITE_N8N_WEBHOOK_ANNULATION || 'https://your-n8n-instance.com/webhook/annulation',
-  SATISFACTION: process.env.VITE_N8N_WEBHOOK_SATISFACTION || 'https://your-n8n-instance.com/webhook/satisfaction',
-  RAPPEL_MAINTENANCE: process.env.VITE_N8N_WEBHOOK_MAINTENANCE || 'https://your-n8n-instance.com/webhook/maintenance',
-  CONTACT: process.env.VITE_N8N_WEBHOOK_CONTACT || 'https://your-n8n-instance.com/webhook/contact',
+  RESERVATION: import.meta.env.VITE_N8N_WEBHOOK_RESERVATION || 'https://your-n8n-instance.com/webhook/reservation',
+  MODIFICATION: import.meta.env.VITE_N8N_WEBHOOK_MODIFICATION || 'https://your-n8n-instance.com/webhook/modification',
+  ANNULATION: import.meta.env.VITE_N8N_WEBHOOK_ANNULATION || 'https://your-n8n-instance.com/webhook/annulation',
+  SATISFACTION: import.meta.env.VITE_N8N_WEBHOOK_SATISFACTION || 'https://your-n8n-instance.com/webhook/satisfaction',
+  RAPPEL_MAINTENANCE: import.meta.env.VITE_N8N_WEBHOOK_MAINTENANCE || 'https://your-n8n-instance.com/webhook/maintenance',
+  CONTACT: import.meta.env.VITE_N8N_WEBHOOK_CONTACT || 'https://your-n8n-instance.com/webhook/contact',
 };
 
 export interface ApiResponse {
