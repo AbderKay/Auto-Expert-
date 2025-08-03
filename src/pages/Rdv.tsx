@@ -18,6 +18,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { envoyerReservation, getUserId } from '@/utils/n8nApi';
+import { supabase } from '@/integrations/supabase/client';
 
 const formSchema = z.object({
   nom: z.string().min(2, 'Le nom doit contenir au moins 2 caractères'),
@@ -87,6 +88,31 @@ const Rdv = () => {
 
       console.log('Envoi de la réservation:', reservationData);
 
+      // Enregistrer dans Supabase
+      const { data: supabaseData, error: supabaseError } = await supabase
+        .from('rendez_vous')
+        .insert({
+          user_id: userId,
+          nom_client: data.nom,
+          email_client: data.email,
+          telephone_client: data.telephone,
+          vehicule: data.vehicule,
+          date_rdv: format(data.date, 'yyyy-MM-dd'),
+          heure_rdv: data.heure,
+          service: data.typeIntervention,
+          status: 'confirmed'
+        })
+        .select()
+        .single();
+
+      if (supabaseError) {
+        console.error('Erreur Supabase:', supabaseError);
+        throw new Error('Erreur lors de l\'enregistrement en base de données');
+      }
+
+      console.log('RDV enregistré en base:', supabaseData);
+
+      // Envoyer à n8n en parallèle
       const result = await envoyerReservation(reservationData);
 
       if (result.success) {
@@ -97,7 +123,14 @@ const Rdv = () => {
         });
         form.reset();
       } else {
-        throw new Error(result.message);
+        console.warn('Erreur n8n mais RDV enregistré en base:', result.message);
+        // Même si n8n échoue, le RDV est en base donc on considère le succès
+        setIsSubmitted(true);
+        toast({
+          title: '✅ Réservation confirmée !',
+          description: 'Votre rendez-vous a été enregistré.',
+        });
+        form.reset();
       }
     } catch (error) {
       console.error('Erreur lors de la réservation:', error);

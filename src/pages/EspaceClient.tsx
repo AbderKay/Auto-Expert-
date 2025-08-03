@@ -110,9 +110,9 @@ const EspaceClient = () => {
           id: rdv.id.toString(),
           date: rdv.date_rdv,
           heure: rdv.heure_rdv,
-          vehicule: 'Véhicule non spécifié', // Colonne vehicule disponible dans la DB selon le schéma
+          vehicule: 'Véhicule non spécifié', // La colonne vehicule n'existe pas dans le schéma actuel
           typeIntervention: rdv.service || 'Service non spécifié',
-          statut: 'confirmé', // Par défaut, les RDV créés sont confirmés
+          statut: rdv.statut || 'confirmé',
           technicien: 'À définir',
           commentaires: '',
           nom_client: rdv.nom_client,
