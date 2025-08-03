@@ -22,6 +22,7 @@ import {
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { modifierRendezVous, annulerRendezVous, getUserId } from '@/utils/n8nApi';
+import { supabase } from '@/integrations/supabase/client';
 
 // Données mockées pour la démonstration
 const mockRendezVous = [
@@ -71,21 +72,135 @@ const mockDevis = [
 const EspaceClient = () => {
   const [rdvAVenir, setRdvAVenir] = useState<any[]>([]);
   const [rdvPasses, setRdvPasses] = useState<any[]>([]);
-  const [devis, setDevis] = useState(mockDevis);
+  const [devis, setDevis] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  const chargerRendezVous = async () => {
+    try {
+      const userId = getUserId();
+      
+      // Charger les rendez-vous depuis Supabase
+      const { data: rendezVousData, error: rdvError } = await supabase
+        .from('rendez_vous')
+        .select('*')
+        .eq('user_id', userId)
+        .order('date_rdv', { ascending: true });
+
+      if (rdvError) {
+        console.error('Erreur lors du chargement des rendez-vous:', rdvError);
+        return;
+      }
+
+      // Charger les devis depuis Supabase
+      const { data: devisData, error: devisError } = await supabase
+        .from('devis')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (devisError) {
+        console.error('Erreur lors du chargement des devis:', devisError);
+      } else {
+        setDevis(devisData || []);
+      }
+
+      if (rendezVousData) {
+        // Transformer les données pour correspondre au format attendu
+        const rdvFormates = rendezVousData.map(rdv => ({
+          id: rdv.id.toString(),
+          date: rdv.date_rdv,
+          heure: rdv.heure_rdv,
+          vehicule: 'Véhicule non spécifié', // Colonne vehicule disponible dans la DB selon le schéma
+          typeIntervention: rdv.service || 'Service non spécifié',
+          statut: 'confirmé', // Par défaut, les RDV créés sont confirmés
+          technicien: 'À définir',
+          commentaires: '',
+          nom_client: rdv.nom_client,
+          email_client: rdv.email_client,
+          telephone_client: rdv.telephone_client
+        }));
+
+        // Séparer les RDV à venir et passés
+        const maintenant = new Date();
+        const aVenir = rdvFormates.filter(rdv => 
+          new Date(rdv.date) >= maintenant
+        );
+        const passes = rdvFormates.filter(rdv => 
+          new Date(rdv.date) < maintenant
+        );
+        
+        setRdvAVenir(aVenir);
+        setRdvPasses(passes);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des données:', error);
+    }
+  };
+
   useEffect(() => {
-    // Séparer les RDV à venir et passés
-    const maintenant = new Date();
-    const aVenir = mockRendezVous.filter(rdv => 
-      new Date(rdv.date) >= maintenant && rdv.statut !== 'terminé'
-    );
-    const passes = mockRendezVous.filter(rdv => 
-      new Date(rdv.date) < maintenant || rdv.statut === 'terminé'
-    );
-    
-    setRdvAVenir(aVenir);
-    setRdvPasses(passes);
+    chargerRendezVous();
+
+    // Configurer l'écoute en temps réel pour les nouveaux rendez-vous
+    const userId = getUserId();
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'rendez_vous',
+          filter: `user_id=eq.${userId}`
+        },
+        (payload) => {
+          console.log('Nouveau rendez-vous détecté:', payload);
+          // Recharger les données quand un nouveau RDV est ajouté
+          chargerRendezVous();
+          
+          // Afficher une notification
+          toast({
+            title: '✅ Nouveau rendez-vous',
+            description: 'Votre rendez-vous a été confirmé et ajouté à votre planning.',
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'rendez_vous',
+          filter: `user_id=eq.${userId}`
+        },
+        (payload) => {
+          console.log('Rendez-vous modifié:', payload);
+          chargerRendezVous();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'devis',
+          filter: `user_id=eq.${userId}`
+        },
+        (payload) => {
+          console.log('Nouveau devis détecté:', payload);
+          chargerRendezVous();
+          
+          toast({
+            title: '📄 Nouveau devis disponible',
+            description: 'Un nouveau devis a été généré pour votre intervention.',
+          });
+        }
+      )
+      .subscribe();
+
+    // Nettoyer l'abonnement au démontage du composant
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const handleModifierRdv = async (rdvId: string) => {
