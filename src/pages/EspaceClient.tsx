@@ -148,8 +148,23 @@ const EspaceClient = () => {
   };
 
   useEffect(() => {
-    // Vérifier l'authentification
-    const checkAuth = async () => {
+    // Configurer l'écoute des changements d'authentification
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!session) {
+        navigate('/auth');
+        return;
+      } else {
+        setSession(session);
+        setUser(session.user);
+        
+        // Charger les données seulement si on a une session
+        await chargerRendezVous();
+        setIsLoading(false);
+      }
+    });
+
+    // Vérifier la session actuelle
+    const initAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         navigate('/auth');
@@ -157,20 +172,14 @@ const EspaceClient = () => {
       }
       setSession(session);
       setUser(session.user);
-      chargerRendezVous();
+      await chargerRendezVous();
+      setIsLoading(false);
     };
 
-    checkAuth();
+    initAuth();
 
-    // Écouter les changements d'authentification
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!session) {
-        navigate('/auth');
-      } else {
-        setSession(session);
-        setUser(session.user);
-      }
-    });
+    // Nettoyer la subscription à la destruction du composant
+    return () => subscription.unsubscribe();
 
     // Configurer l'écoute en temps réel pour les nouveaux rendez-vous
     const userId = getUserId();
