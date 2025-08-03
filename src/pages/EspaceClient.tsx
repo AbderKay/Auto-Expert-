@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -17,7 +18,8 @@ import {
   CheckCircle, 
   AlertCircle,
   User,
-  History
+  History,
+  LogOut
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -73,7 +75,10 @@ const EspaceClient = () => {
   const [rdvAVenir, setRdvAVenir] = useState<any[]>([]);
   const [rdvPasses, setRdvPasses] = useState<any[]>([]);
   const [devis, setDevis] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
+  const [session, setSession] = useState<any>(null);
+  const navigate = useNavigate();
 
   const chargerRendezVous = async () => {
     try {
@@ -143,7 +148,29 @@ const EspaceClient = () => {
   };
 
   useEffect(() => {
-    chargerRendezVous();
+    // Vérifier l'authentification
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate('/auth');
+        return;
+      }
+      setSession(session);
+      setUser(session.user);
+      chargerRendezVous();
+    };
+
+    checkAuth();
+
+    // Écouter les changements d'authentification
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!session) {
+        navigate('/auth');
+      } else {
+        setSession(session);
+        setUser(session.user);
+      }
+    });
 
     // Configurer l'écoute en temps réel pour les nouveaux rendez-vous
     const userId = getUserId();
@@ -204,9 +231,10 @@ const EspaceClient = () => {
 
     // Nettoyer l'abonnement au démontage du composant
     return () => {
+      subscription.unsubscribe();
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [navigate]);
 
   const handleModifierRdv = async (rdvId: string) => {
     setIsLoading(true);
@@ -329,6 +357,22 @@ const EspaceClient = () => {
     }
   };
 
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: '✅ Déconnexion réussie',
+        description: 'Vous avez été déconnecté avec succès.',
+      });
+    } catch (error) {
+      toast({
+        title: '❌ Erreur',
+        description: 'Erreur lors de la déconnexion.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const getStatutBadge = (statut: string) => {
     switch (statut) {
       case 'confirmé':
@@ -344,17 +388,42 @@ const EspaceClient = () => {
     }
   };
 
+  if (isLoading || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Chargement de votre espace client...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <Layout>
       <div className="min-h-screen bg-background py-20">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
             {/* Header */}
-            <div className="text-center mb-12">
-              <h1 className="text-4xl font-bold mb-4">Mon Espace Client</h1>
-              <p className="text-xl text-muted-foreground">
-                Gérez vos rendez-vous et suivez l'historique de vos interventions
-              </p>
+            <div className="flex items-center justify-between mb-12">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-primary/10 rounded-lg">
+                  <Car className="h-8 w-8 text-primary" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold">Mon Espace Client</h1>
+                  <p className="text-muted-foreground">Bienvenue, {user?.email}</p>
+                </div>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleSignOut}
+                className="flex items-center gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                Déconnexion
+              </Button>
             </div>
 
             <Tabs defaultValue="rdv" className="space-y-8">

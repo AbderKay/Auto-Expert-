@@ -15,7 +15,8 @@ import {
   CheckCircle,
   Calendar,
   Users,
-  Award
+  Award,
+  User
 } from 'lucide-react';
 import luxuryCarBg from '@/assets/luxury-car-bg.jpg';
 
@@ -99,6 +100,17 @@ const Index = () => {
                 <Link to="/rdv">
                   <Calendar className="mr-2 h-5 w-5" />
                   Réserver un RDV
+                </Link>
+              </Button>
+              <Button 
+                asChild
+                variant="outline" 
+                size="lg" 
+                className="text-lg px-8 py-4 border-white text-white hover:bg-white hover:text-black"
+              >
+                <Link to="/auth">
+                  <User className="mr-2 h-5 w-5" />
+                  Espace Client
                 </Link>
               </Button>
               <Button 

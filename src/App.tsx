@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Rdv from "./pages/Rdv";
 import EspaceClient from "./pages/EspaceClient";
+import Auth from "./pages/Auth";
 import Satisfaction from "./pages/Satisfaction";
 import Maintenance from "./pages/Maintenance";
 import NotFound from "./pages/NotFound";
@@ -21,6 +22,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/rdv" element={<Rdv />} />
+          <Route path="/auth" element={<Auth />} />
           <Route path="/espace-client" element={<EspaceClient />} />
           <Route path="/satisfaction" element={<Satisfaction />} />
           <Route path="/maintenance" element={<Maintenance />} />
