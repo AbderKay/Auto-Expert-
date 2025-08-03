@@ -9,6 +9,7 @@ const N8N_WEBHOOKS = {
   SATISFACTION: import.meta.env.VITE_N8N_WEBHOOK_SATISFACTION || 'https://your-n8n-instance.com/webhook/satisfaction',
   RAPPEL_MAINTENANCE: import.meta.env.VITE_N8N_WEBHOOK_MAINTENANCE || 'https://your-n8n-instance.com/webhook/maintenance',
   CONTACT: import.meta.env.VITE_N8N_WEBHOOK_CONTACT || 'https://your-n8n-instance.com/webhook/contact',
+  DEVIS_PDF: import.meta.env.VITE_N8N_WEBHOOK_DEVIS_PDF || 'https://your-n8n-instance.com/webhook/devis-pdf',
 };
 
 export interface ApiResponse {

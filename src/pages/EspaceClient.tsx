@@ -122,12 +122,17 @@ const EspaceClient = () => {
 
         // Séparer les RDV à venir et passés
         const maintenant = new Date();
-        const aVenir = rdvFormates.filter(rdv => 
-          new Date(rdv.date) >= maintenant
-        );
-        const passes = rdvFormates.filter(rdv => 
-          new Date(rdv.date) < maintenant
-        );
+        maintenant.setHours(0, 0, 0, 0); // Remettre à minuit pour comparer uniquement les dates
+        
+        const aVenir = rdvFormates.filter(rdv => {
+          const rdvDate = new Date(rdv.date);
+          return rdvDate >= maintenant;
+        });
+        
+        const passes = rdvFormates.filter(rdv => {
+          const rdvDate = new Date(rdv.date);
+          return rdvDate < maintenant;
+        });
         
         setRdvAVenir(aVenir);
         setRdvPasses(passes);
@@ -261,15 +266,67 @@ const EspaceClient = () => {
     }
   };
 
-  const downloadDevis = (devisId: string) => {
-    // Simulation du téléchargement
-    toast({
-      title: '📄 Téléchargement',
-      description: 'Le devis PDF est en cours de téléchargement...',
-    });
-    
-    // En réalité, ici vous déclencheriez un appel à votre API n8n
-    // pour générer et télécharger le PDF
+  const downloadDevis = async (devisId: string) => {
+    try {
+      const userId = getUserId();
+      
+      // Envoyer la demande à n8n pour générer le PDF
+      const response = await fetch(import.meta.env.VITE_N8N_WEBHOOK_DEVIS_PDF || 'https://your-n8n-instance.com/webhook/devis-pdf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          devisId,
+          userId,
+          timestamp: new Date().toISOString(),
+          webhookType: 'DEVIS_PDF',
+          source: 'autoexpert-website'
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erreur HTTP: ${response.status}`);
+      }
+
+      // Si la réponse est un PDF, télécharger directement
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/pdf')) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `devis_${devisId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        toast({
+          title: '✅ Téléchargement réussi',
+          description: 'Le devis PDF a été téléchargé avec succès.',
+        });
+      } else {
+        // Si c'est une réponse JSON avec un lien
+        const result = await response.json();
+        if (result.pdfUrl) {
+          window.open(result.pdfUrl, '_blank');
+          toast({
+            title: '✅ Devis disponible',
+            description: 'Le devis PDF s\'ouvre dans un nouvel onglet.',
+          });
+        } else {
+          throw new Error('URL du PDF non disponible');
+        }
+      }
+    } catch (error) {
+      console.error('Erreur téléchargement devis:', error);
+      toast({
+        title: '❌ Erreur',
+        description: 'Impossible de télécharger le devis. Veuillez réessayer.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const getStatutBadge = (statut: string) => {
