@@ -117,7 +117,7 @@ const EspaceClient = () => {
           heure: rdv.heure_rdv,
           vehicule: rdv.vehicule || 'Véhicule non spécifié',
           typeIntervention: rdv.service || 'Service non spécifié',
-          statut: rdv.status || 'confirmé',
+          statut: rdv.status || 'pending',
           technicien: 'À définir',
           commentaires: '',
           nom_client: rdv.nom_client,
@@ -125,19 +125,12 @@ const EspaceClient = () => {
           telephone_client: rdv.telephone_client
         }));
 
-        // Séparer les RDV à venir et passés
-        const maintenant = new Date();
-        maintenant.setHours(0, 0, 0, 0); // Remettre à minuit pour comparer uniquement les dates
+        // Séparer les RDV selon leur statut
+        // Onglet "Rendez-vous" : statut différent de "confirmé"
+        const aVenir = rdvFormates.filter(rdv => rdv.statut !== 'confirmé');
         
-        const aVenir = rdvFormates.filter(rdv => {
-          const rdvDate = new Date(rdv.date);
-          return rdvDate >= maintenant;
-        });
-        
-        const passes = rdvFormates.filter(rdv => {
-          const rdvDate = new Date(rdv.date);
-          return rdvDate < maintenant;
-        });
+        // Onglet "Historique" : statut = "confirmé" 
+        const passes = rdvFormates.filter(rdv => rdv.statut === 'confirmé');
         
         setRdvAVenir(aVenir);
         setRdvPasses(passes);
@@ -296,6 +289,35 @@ const EspaceClient = () => {
       toast({
         title: '❌ Erreur',
         description: 'Impossible d\'annuler le rendez-vous. Veuillez réessayer.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleConfirmerRdv = async (rdvId: string) => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('rendez_vous')
+        .update({ status: 'confirmé' })
+        .eq('id', parseInt(rdvId));
+
+      if (error) throw error;
+
+      // Recharger les données pour mettre à jour l'affichage
+      await chargerRendezVous();
+      
+      toast({
+        title: '✅ Rendez-vous confirmé',
+        description: 'Le rendez-vous a été confirmé et déplacé dans l\'historique.',
+      });
+    } catch (error) {
+      console.error('Erreur lors de la confirmation:', error);
+      toast({
+        title: '❌ Erreur',
+        description: 'Impossible de confirmer le rendez-vous. Veuillez réessayer.',
         variant: 'destructive',
       });
     } finally {
@@ -506,6 +528,17 @@ const EspaceClient = () => {
                                 )}
                               </div>
                               <div className="flex space-x-2">
+                                <Button 
+                                  onClick={() => handleConfirmerRdv(rdv.id)}
+                                  disabled={isLoading}
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="bg-green-50 text-green-700 hover:bg-green-100 border-green-300"
+                                >
+                                  <CheckCircle className="h-4 w-4 mr-1" />
+                                  Confirmer
+                                </Button>
+                                
                                 <Dialog>
                                   <DialogTrigger asChild>
                                     <Button variant="outline" size="sm" className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-300">
