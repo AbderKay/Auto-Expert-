@@ -140,45 +140,42 @@ export type Database = {
       rendez_vous: {
         Row: {
           created_at: string | null
-          date_annulation: string | null
-          date_modification: string | null
           date_rdv: string | null
           email_client: string | null
           heure_rdv: string | null
           id: number
           nom_client: string | null
           service: string | null
-          statut: string | null
+          status: string | null
           telephone_client: string | null
           user_id: string | null
+          vehicule: string
         }
         Insert: {
           created_at?: string | null
-          date_annulation?: string | null
-          date_modification?: string | null
           date_rdv?: string | null
           email_client?: string | null
           heure_rdv?: string | null
           id?: number
           nom_client?: string | null
           service?: string | null
-          statut?: string | null
+          status?: string | null
           telephone_client?: string | null
           user_id?: string | null
+          vehicule?: string
         }
         Update: {
           created_at?: string | null
-          date_annulation?: string | null
-          date_modification?: string | null
           date_rdv?: string | null
           email_client?: string | null
           heure_rdv?: string | null
           id?: number
           nom_client?: string | null
           service?: string | null
-          statut?: string | null
+          status?: string | null
           telephone_client?: string | null
           user_id?: string | null
+          vehicule?: string
         }
         Relationships: []
       }

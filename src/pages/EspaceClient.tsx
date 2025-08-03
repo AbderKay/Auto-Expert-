@@ -110,9 +110,9 @@ const EspaceClient = () => {
           id: rdv.id.toString(),
           date: rdv.date_rdv,
           heure: rdv.heure_rdv,
-          vehicule: 'Véhicule non spécifié', // La colonne vehicule n'existe pas dans le schéma actuel
+          vehicule: rdv.vehicule || 'Véhicule non spécifié',
           typeIntervention: rdv.service || 'Service non spécifié',
-          statut: rdv.statut || 'confirmé',
+          statut: rdv.status || 'confirmé',
           technicien: 'À définir',
           commentaires: '',
           nom_client: rdv.nom_client,
