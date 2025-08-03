@@ -327,19 +327,37 @@ const EspaceClient = () => {
 
   const downloadDevis = async (devisId: string) => {
     try {
-      const userId = getUserId();
-      
-      // Envoyer la demande à n8n pour générer le PDF
-      const response = await fetch(import.meta.env.VITE_N8N_WEBHOOK_DEVIS_PDF || 'https://your-n8n-instance.com/webhook/devis-pdf', {
+      // Récupérer les données du devis
+      const { data: devisData, error: devisError } = await supabase
+        .from('devis')
+        .select('*')
+        .eq('id', parseInt(devisId))
+        .single();
+
+      if (devisError || !devisData) {
+        throw new Error('Devis non trouvé');
+      }
+
+      // Préparer les données pour le webhook n8n
+      const payload = {
+        nom_client: devisData.nom_client || 'Client',
+        email_client: devisData.email_client || '',
+        date_rdv: new Date().toISOString().split('T')[0], // Date par défaut
+        heure_rdv: '09:00', // Heure par défaut
+        service: devisData.service || 'Service non spécifié',
+        vehicule: 'Véhicule non spécifié', // Données par défaut
+        montant: parseFloat(String(devisData.total_ttc || 0)),
+        rdv_id: devisId,
+      };
+
+      const response = await fetch('https://mon-serveur.com/webhook/generer-pdf', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          devisId,
-          userId,
+          ...payload,
           timestamp: new Date().toISOString(),
-          webhookType: 'DEVIS_PDF',
           source: 'autoexpert-website'
         }),
       });
@@ -348,36 +366,21 @@ const EspaceClient = () => {
         throw new Error(`Erreur HTTP: ${response.status}`);
       }
 
-      // Si la réponse est un PDF, télécharger directement
-      const contentType = response.headers.get('content-type');
-      if (contentType && contentType.includes('application/pdf')) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `devis_${devisId}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-        
-        toast({
-          title: '✅ Téléchargement réussi',
-          description: 'Le devis PDF a été téléchargé avec succès.',
-        });
-      } else {
-        // Si c'est une réponse JSON avec un lien
-        const result = await response.json();
-        if (result.pdfUrl) {
-          window.open(result.pdfUrl, '_blank');
-          toast({
-            title: '✅ Devis disponible',
-            description: 'Le devis PDF s\'ouvre dans un nouvel onglet.',
-          });
-        } else {
-          throw new Error('URL du PDF non disponible');
-        }
-      }
+      // Télécharger automatiquement le PDF
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `devis_${devisId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast({
+        title: '✅ Téléchargement réussi',
+        description: 'Le devis PDF a été téléchargé avec succès.',
+      });
     } catch (error) {
       console.error('Erreur téléchargement devis:', error);
       toast({
@@ -802,47 +805,43 @@ const EspaceClient = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {devis.map((devis) => (
-                      <Card key={devis.id} className="border">
-                        <CardContent className="pt-6">
-                          <div className="flex justify-between items-start">
-                            <div className="space-y-2">
-                              <div className="flex items-center space-x-4">
-                                <span className="text-lg font-semibold">
-                                  Devis #{devis.id}
-                                </span>
-                                <Badge 
-                                  className={devis.statut === 'payé' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}
-                                >
-                                  {devis.statut === 'payé' ? 'Payé' : 'En attente'}
-                                </Badge>
-                              </div>
-                              <p className="text-sm text-muted-foreground">
-                                {format(new Date(devis.date), 'EEEE d MMMM yyyy', { locale: fr })}
-                              </p>
-                              <p className="text-sm">
-                                <strong>Intervention:</strong> {devis.intervention}
-                              </p>
-                              <div className="text-2xl font-bold text-primary">
-                                {devis.montant.toFixed(2)} €
-                              </div>
-                              <ul className="text-sm text-muted-foreground">
-                                {devis.details.map((detail, idx) => (
-                                  <li key={idx}>• {detail}</li>
-                                ))}
-                              </ul>
-                            </div>
-                            <Button 
-                              onClick={() => downloadDevis(devis.id)}
-                              className="flex items-center space-x-2 btn-primary"
-                            >
-                              <Download className="h-4 w-4" />
-                              <span>Télécharger PDF</span>
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                     {devis.map((devis) => (
+                       <Card key={devis.id} className="border">
+                         <CardContent className="pt-6">
+                           <div className="flex justify-between items-start">
+                             <div className="space-y-2">
+                               <div className="flex items-center space-x-4">
+                                 <span className="text-lg font-semibold">
+                                   Devis #{devis.numero_devis || devis.id}
+                                 </span>
+                                 <Badge className="bg-yellow-100 text-yellow-800">
+                                   En attente
+                                 </Badge>
+                               </div>
+                               <p className="text-sm text-muted-foreground">
+                                 {format(new Date(devis.created_at), 'EEEE d MMMM yyyy', { locale: fr })}
+                               </p>
+                               <p className="text-sm">
+                                 <strong>Service:</strong> {devis.service || 'Service non spécifié'}
+                               </p>
+                               <p className="text-sm">
+                                 <strong>Client:</strong> {devis.nom_client}
+                               </p>
+                               <div className="text-2xl font-bold text-primary">
+                                 {parseFloat(devis.total_ttc || 0).toFixed(2)} €
+                               </div>
+                             </div>
+                             <Button 
+                               onClick={() => downloadDevis(devis.id.toString())}
+                               className="flex items-center space-x-2 btn-primary"
+                             >
+                               <Download className="h-4 w-4" />
+                               <span>Télécharger PDF</span>
+                             </Button>
+                           </div>
+                         </CardContent>
+                       </Card>
+                     ))}
                   </CardContent>
                 </Card>
               </TabsContent>

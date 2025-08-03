@@ -119,6 +119,53 @@ export const envoyerContact = async (contactData: {
   return sendToN8n('CONTACT', contactData);
 };
 
+// Fonction pour générer et télécharger un devis PDF via n8n
+export const genererDevisPDF = async (devisData: {
+  nom_client: string;
+  email_client: string;
+  date_rdv: string;
+  heure_rdv: string;
+  service: string;
+  vehicule: string;
+  montant: number;
+  rdv_id: string;
+}): Promise<Blob | null> => {
+  try {
+    const webhookUrl = 'https://mon-serveur.com/webhook/generer-pdf';
+    
+    const payload = {
+      ...devisData,
+      timestamp: new Date().toISOString(),
+      source: 'autoexpert-website'
+    };
+
+    console.log('Génération PDF via n8n:', payload);
+
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Erreur HTTP: ${response.status}`);
+    }
+
+    // Vérifier que la réponse est bien un PDF
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/pdf')) {
+      return await response.blob();
+    } else {
+      throw new Error('La réponse n\'est pas un fichier PDF');
+    }
+  } catch (error) {
+    console.error('Erreur génération PDF n8n:', error);
+    return null;
+  }
+};
+
 // Utilitaire pour générer un ID utilisateur temporaire
 export const generateUserId = (): string => {
   return `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
