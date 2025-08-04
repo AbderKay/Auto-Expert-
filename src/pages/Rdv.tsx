@@ -101,7 +101,7 @@ const Rdv = () => {
           date_rdv: format(data.date, 'yyyy-MM-dd'),
           heure_rdv: data.heure,
           service: data.typeIntervention.join(', '),
-          status: 'confirmed'
+          status: 'pending'
         })
         .select()
         .single();
