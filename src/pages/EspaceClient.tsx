@@ -167,9 +167,10 @@ const EspaceClient = () => {
         const passes = [];
         
         for (const rdv of rdvFormates) {
-          if (rdv.statut === 'confirmed') {
+          if (rdv.statut === 'terminé' || rdv.statut === 'completed') {
             passes.push(rdv);
           } else {
+            // Les rendez-vous pending et confirmed restent dans "à venir"
             aVenir.push(rdv);
           }
         }
@@ -352,9 +353,13 @@ const EspaceClient = () => {
         statut: 'pending'
       };
 
+      // Mettre à jour dans rdvAVenir et s'assurer qu'il n'est pas dans rdvPasses
       setRdvAVenir(prev => prev.map(rdv => 
         rdv.id === selectedRdv.id ? updatedRdv : rdv
       ));
+      
+      // Supprimer de rdvPasses si il y était
+      setRdvPasses(prev => prev.filter(rdv => rdv.id !== selectedRdv.id));
 
       setIsModificationModalOpen(false);
       setSelectedRdv(null);
@@ -569,7 +574,7 @@ const EspaceClient = () => {
     try {
       const { data, error } = await supabase
         .from('rendez_vous')
-        .update({ status: 'confirmé' })
+        .update({ status: 'confirmed' })
         .eq('id', parseInt(rdvId));
 
       if (error) throw error;
@@ -677,13 +682,18 @@ const EspaceClient = () => {
 
   const getStatutBadge = (statut: string) => {
     switch (statut) {
+      case 'confirmed':
       case 'confirmé':
         return <Badge className="bg-blue-100 text-blue-800">Confirmé</Badge>;
+      case 'pending':
+        return <Badge className="bg-orange-100 text-orange-800">En attente</Badge>;
       case 'terminé':
+      case 'completed':
         return <Badge className="bg-green-100 text-green-800">Terminé</Badge>;
       case 'en_cours':
         return <Badge className="bg-yellow-100 text-yellow-800">En cours</Badge>;
       case 'annulé':
+      case 'cancelled':
         return <Badge className="bg-red-100 text-red-800">Annulé</Badge>;
       default:
         return <Badge variant="secondary">{statut}</Badge>;
