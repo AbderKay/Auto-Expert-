@@ -63,7 +63,7 @@ const Satisfaction = () => {
           .from('rendez_vous')
           .select('*')
           .eq('user_id', userId)
-          .eq('status', 'confirmé')
+          .eq('status', 'confirmed')
           .order('date_rdv', { ascending: false });
 
         if (error) {
