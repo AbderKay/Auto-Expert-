@@ -121,53 +121,58 @@ const EspaceClient = () => {
     try {
       const userId = getUserId();
       
-      // Charger les rendez-vous depuis Supabase
-      const { data: rendezVousData, error: rdvError } = await supabase
-        .from('rendez_vous')
-        .select('*')
-        .eq('user_id', userId)
-        .order('date_rdv', { ascending: true });
+      // Charger les données en parallèle pour améliorer les performances
+      const [rendezVousResponse, devisResponse] = await Promise.all([
+        supabase
+          .from('rendez_vous')
+          .select('*')
+          .eq('user_id', userId)
+          .order('date_rdv', { ascending: true }),
+        supabase
+          .from('devis')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+      ]);
 
-      if (rdvError) {
-        console.error('Erreur lors du chargement des rendez-vous:', rdvError);
+      // Gestion des erreurs
+      if (rendezVousResponse.error) {
+        console.error('Erreur lors du chargement des rendez-vous:', rendezVousResponse.error);
         return;
       }
 
-      // Charger les devis depuis Supabase
-      const { data: devisData, error: devisError } = await supabase
-        .from('devis')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
-
-      if (devisError) {
-        console.error('Erreur lors du chargement des devis:', devisError);
+      if (devisResponse.error) {
+        console.error('Erreur lors du chargement des devis:', devisResponse.error);
       } else {
-        setDevis(devisData || []);
+        setDevis(devisResponse.data || []);
       }
 
-      if (rendezVousData) {
+      if (rendezVousResponse.data) {
         // Transformer les données pour correspondre au format attendu
-        const rdvFormates = rendezVousData.map(rdv => ({
+        const rdvFormates = rendezVousResponse.data.map(rdv => ({
           id: rdv.id.toString(),
           date: rdv.date_rdv,
           heure: rdv.heure_rdv,
           vehicule: rdv.vehicule || 'Véhicule non spécifié',
           typeIntervention: rdv.service || 'Service non spécifié',
           statut: rdv.status || 'pending',
-          technicien: 'À définir',
           commentaires: '',
           nom_client: rdv.nom_client,
           email_client: rdv.email_client,
           telephone_client: rdv.telephone_client
         }));
 
-        // Séparer les RDV selon leur statut
-        // Onglet "Rendez-vous" : statut différent de "confirmé"
-        const aVenir = rdvFormates.filter(rdv => rdv.statut !== 'confirmé');
+        // Séparer les RDV selon leur statut (optimisé)
+        const aVenir = [];
+        const passes = [];
         
-        // Onglet "Historique" : statut = "confirmé" 
-        const passes = rdvFormates.filter(rdv => rdv.statut === 'confirmé');
+        for (const rdv of rdvFormates) {
+          if (rdv.statut === 'confirmed') {
+            passes.push(rdv);
+          } else {
+            aVenir.push(rdv);
+          }
+        }
         
         setRdvAVenir(aVenir);
         setRdvPasses(passes);
@@ -178,102 +183,117 @@ const EspaceClient = () => {
   };
 
   useEffect(() => {
-    // Configurer l'écoute des changements d'authentification
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    let mounted = true;
+    let authSubscription: any;
+    let realtimeChannel: any;
+
+    const initializeApp = async () => {
+      // Vérifier la session actuelle
+      const { data: { session } } = await supabase.auth.getSession();
+      
       if (!session) {
         navigate('/auth');
         return;
-      } else {
+      }
+
+      if (!mounted) return;
+
+      setSession(session);
+      setUser(session.user);
+      
+      // Charger les données initiales
+      await chargerRendezVous();
+      
+      if (!mounted) return;
+      setIsLoading(false);
+
+      // Configurer l'écoute en temps réel UNIQUEMENT après avoir chargé les données
+      const userId = getUserId();
+      realtimeChannel = supabase
+        .channel(`user_${userId}_updates`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'rendez_vous',
+            filter: `user_id=eq.${userId}`
+          },
+          (payload) => {
+            console.log('Nouveau rendez-vous détecté:', payload);
+            chargerRendezVous();
+            
+            toast({
+              title: '✅ Nouveau rendez-vous',
+              description: 'Votre rendez-vous a été confirmé et ajouté à votre planning.',
+            });
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'rendez_vous',
+            filter: `user_id=eq.${userId}`
+          },
+          (payload) => {
+            console.log('Rendez-vous modifié:', payload);
+            chargerRendezVous();
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'devis',
+            filter: `user_id=eq.${userId}`
+          },
+          (payload) => {
+            console.log('Nouveau devis détecté:', payload);
+            chargerRendezVous();
+            
+            toast({
+              title: '📄 Nouveau devis disponible',
+              description: 'Un nouveau devis a été généré pour votre intervention.',
+            });
+          }
+        )
+        .subscribe();
+    };
+
+    // Configurer l'écoute des changements d'authentification
+    authSubscription = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
+
+      if (!session) {
+        navigate('/auth');
+        return;
+      }
+
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         setSession(session);
         setUser(session.user);
-        
-        // Charger les données seulement si on a une session
         await chargerRendezVous();
         setIsLoading(false);
       }
     });
 
-    // Vérifier la session actuelle
-    const initAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate('/auth');
-        return;
-      }
-      setSession(session);
-      setUser(session.user);
-      await chargerRendezVous();
-      setIsLoading(false);
-    };
+    // Initialiser l'application
+    initializeApp();
 
-    initAuth();
-
-    // Nettoyer la subscription à la destruction du composant
-    return () => subscription.unsubscribe();
-
-    // Configurer l'écoute en temps réel pour les nouveaux rendez-vous
-    const userId = getUserId();
-    const channel = supabase
-      .channel('schema-db-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'rendez_vous',
-          filter: `user_id=eq.${userId}`
-        },
-        (payload) => {
-          console.log('Nouveau rendez-vous détecté:', payload);
-          // Recharger les données quand un nouveau RDV est ajouté
-          chargerRendezVous();
-          
-          // Afficher une notification
-          toast({
-            title: '✅ Nouveau rendez-vous',
-            description: 'Votre rendez-vous a été confirmé et ajouté à votre planning.',
-          });
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'rendez_vous',
-          filter: `user_id=eq.${userId}`
-        },
-        (payload) => {
-          console.log('Rendez-vous modifié:', payload);
-          chargerRendezVous();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'devis',
-          filter: `user_id=eq.${userId}`
-        },
-        (payload) => {
-          console.log('Nouveau devis détecté:', payload);
-          chargerRendezVous();
-          
-          toast({
-            title: '📄 Nouveau devis disponible',
-            description: 'Un nouveau devis a été généré pour votre intervention.',
-          });
-        }
-      )
-      .subscribe();
-
-    // Nettoyer l'abonnement au démontage du composant
+    // Cleanup function
     return () => {
-      subscription.unsubscribe();
-      supabase.removeChannel(channel);
+      mounted = false;
+      if (authSubscription?.data?.subscription) {
+        authSubscription.data.subscription.unsubscribe();
+      }
+      if (realtimeChannel) {
+        supabase.removeChannel(realtimeChannel);
+      }
     };
-  }, [navigate]);
+  }, []); // Supprimer navigate des dépendances
 
   const handleModifierRdv = (rdv: any) => {
     setSelectedRdv(rdv);
@@ -285,14 +305,15 @@ const EspaceClient = () => {
 
     setIsLoading(true);
     try {
-      // Vérifier si le créneau est disponible
+      // Vérifier si le créneau est disponible (optimisé avec une seule requête)
       const { data: conflictRdv, error: checkError } = await supabase
         .from('rendez_vous')
-        .select('*')
+        .select('id')
         .eq('date_rdv', format(data.date, 'yyyy-MM-dd'))
         .eq('heure_rdv', data.heure)
         .neq('id', parseInt(selectedRdv.id))
-        .neq('status', 'annulé');
+        .neq('status', 'annulé')
+        .limit(1);
 
       if (checkError) {
         throw new Error('Erreur lors de la vérification de disponibilité');
@@ -322,8 +343,19 @@ const EspaceClient = () => {
         throw updateError;
       }
 
-      // Recharger les données
-      await chargerRendezVous();
+      // Mise à jour locale immédiate pour éviter le rechargement
+      const updatedRdv = {
+        ...selectedRdv,
+        date: format(data.date, 'yyyy-MM-dd'),
+        heure: data.heure,
+        typeIntervention: data.typeIntervention.join(', '),
+        statut: 'pending'
+      };
+
+      setRdvAVenir(prev => prev.map(rdv => 
+        rdv.id === selectedRdv.id ? updatedRdv : rdv
+      ));
+
       setIsModificationModalOpen(false);
       setSelectedRdv(null);
 
