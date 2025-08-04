@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from '@/hooks/use-toast';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { FileText, Loader2 } from 'lucide-react';
-import { envoyerContact, getUserId } from '@/utils/n8nApi';
+import { envoyerDevis, getUserId } from '@/utils/n8nApi';
 
 const formSchema = z.object({
   nom: z.string().min(2, 'Le nom doit contenir au moins 2 caractères'),
@@ -65,13 +65,14 @@ const DevisForm = ({ onSuccess }: DevisFormProps) => {
         nom: data.nom,
         email: data.email,
         telephone: data.telephone,
-        sujet: `Demande de devis - ${data.typeService}`,
-        message: `Demande de devis pour véhicule: ${data.vehicule}\nType de service: ${data.typeService}\nDescription: ${data.description}`,
+        vehicule: data.vehicule,
+        typeService: data.typeService,
+        description: data.description,
       };
 
       console.log('Envoi de la demande de devis:', devisData);
 
-      const result = await envoyerContact(devisData);
+      const result = await envoyerDevis(devisData);
 
       if (result.success) {
         toast({

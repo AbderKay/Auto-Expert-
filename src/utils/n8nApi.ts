@@ -9,6 +9,7 @@ const N8N_WEBHOOKS = {
   SATISFACTION: import.meta.env.VITE_N8N_WEBHOOK_SATISFACTION || 'https://your-n8n-instance.com/webhook/satisfaction',
   RAPPEL_MAINTENANCE: import.meta.env.VITE_N8N_WEBHOOK_MAINTENANCE || 'https://your-n8n-instance.com/webhook/maintenance',
   CONTACT: import.meta.env.VITE_N8N_WEBHOOK_CONTACT || 'https://your-n8n-instance.com/webhook/contact',
+  DEVIS: 'http://localhost:5678/webhook/devis',
   DEVIS_PDF: import.meta.env.VITE_N8N_WEBHOOK_DEVIS_PDF || 'https://your-n8n-instance.com/webhook/devis-pdf',
 };
 
@@ -145,6 +146,17 @@ export const envoyerContact = async (contactData: {
   message: string;
 }) => {
   return sendToN8n('CONTACT', contactData);
+};
+
+export const envoyerDevis = async (devisData: {
+  nom: string;
+  email: string;
+  telephone: string;
+  vehicule: string;
+  typeService: string;
+  description: string;
+}) => {
+  return sendToN8n('DEVIS', devisData);
 };
 
 // Fonction pour générer et télécharger un devis PDF via n8n
