@@ -305,26 +305,24 @@ const Satisfaction = () => {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Rendez-vous à évaluer *</FormLabel>
-                              {rdvTermines.length > 0 ? (
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                  <FormControl>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Sélectionnez le rendez-vous" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    {rdvTermines.map((rdv) => (
-                                      <SelectItem key={rdv.id} value={rdv.id}>
-                                        {rdv.date} {rdv.heure ? `à ${rdv.heure}` : ''} - {rdv.service} ({rdv.vehicule})
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              ) : (
-                                <div className="p-3 border rounded-md bg-muted text-muted-foreground">
-                                  Aucun rendez-vous confirmé à évaluer pour le moment
-                                </div>
-                              )}
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder={
+                                      rdvTermines.length > 0 
+                                        ? "Sélectionnez le rendez-vous" 
+                                        : "Aucun rendez-vous confirmé disponible"
+                                    } />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {rdvTermines.map((rdv) => (
+                                    <SelectItem key={rdv.id} value={rdv.id}>
+                                      {rdv.date} {rdv.heure ? `à ${rdv.heure}` : ''} - {rdv.service} ({rdv.vehicule})
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                               <FormMessage />
                             </FormItem>
                           )}
