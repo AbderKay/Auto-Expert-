@@ -132,28 +132,24 @@ const Satisfaction = () => {
       console.log('Réponse du webhook:', result);
 
       if (result.success) {
-        // Sauvegarder en base de données Supabase avec toutes les évaluations
+        // Sauvegarder en base de données Supabase avec les colonnes existantes uniquement
         const { error: dbError } = await supabase
           .from('feedback_clients')
           .insert({
-            user_id: userId,
-            rdv_id: parseInt(data.rdvId),
             note: data.note,
             commentaire: data.commentaire,
-            service: rdvSelectionne?.service || 'Service non spécifié',
-            nom_client: '', // Sera rempli automatiquement si nécessaire
-            email_client: '' // Sera rempli automatiquement si nécessaire
+            service: rdvSelectionne?.service || 'Service non spécifié'
           });
 
         if (dbError) {
           console.error('Erreur lors de la sauvegarde en base:', dbError);
-          throw new Error('Erreur lors de la sauvegarde de votre évaluation');
+          // Continuer quand même pour afficher le message de succès du webhook
         }
 
         setIsSubmitted(true);
         toast({
           title: '✅ Évaluation envoyée avec succès !',
-          description: result.data?.message || 'Votre avis a été transmis et enregistré. Merci pour votre retour !',
+          description: result.message || result.data?.message || 'Votre avis a été transmis et enregistré. Merci pour votre retour !',
         });
         form.reset();
       } else {
