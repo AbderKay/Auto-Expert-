@@ -129,30 +129,31 @@ const Satisfaction = () => {
 
       // Envoyer vers n8n
       const result = await envoyerSatisfaction(feedbackData, userId);
-
-      // Sauvegarder en base de données Supabase avec toutes les évaluations
-      const { error: dbError } = await supabase
-        .from('feedback_clients')
-        .insert({
-          user_id: userId,
-          rdv_id: parseInt(data.rdvId),
-          note: data.note,
-          commentaire: data.commentaire,
-          service: rdvSelectionne?.service || 'Service non spécifié',
-          nom_client: '', // Sera rempli automatiquement si nécessaire
-          email_client: '' // Sera rempli automatiquement si nécessaire
-        });
-
-      if (dbError) {
-        console.error('Erreur lors de la sauvegarde en base:', dbError);
-        throw new Error('Erreur lors de la sauvegarde de votre évaluation');
-      }
+      console.log('Réponse du webhook:', result);
 
       if (result.success) {
+        // Sauvegarder en base de données Supabase avec toutes les évaluations
+        const { error: dbError } = await supabase
+          .from('feedback_clients')
+          .insert({
+            user_id: userId,
+            rdv_id: parseInt(data.rdvId),
+            note: data.note,
+            commentaire: data.commentaire,
+            service: rdvSelectionne?.service || 'Service non spécifié',
+            nom_client: '', // Sera rempli automatiquement si nécessaire
+            email_client: '' // Sera rempli automatiquement si nécessaire
+          });
+
+        if (dbError) {
+          console.error('Erreur lors de la sauvegarde en base:', dbError);
+          throw new Error('Erreur lors de la sauvegarde de votre évaluation');
+        }
+
         setIsSubmitted(true);
         toast({
-          title: '✅ Merci pour votre avis !',
-          description: 'Votre évaluation a été enregistrée avec succès.',
+          title: '✅ Évaluation envoyée avec succès !',
+          description: result.data?.message || 'Votre avis a été transmis et enregistré. Merci pour votre retour !',
         });
         form.reset();
       } else {

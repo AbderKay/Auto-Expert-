@@ -48,21 +48,37 @@ export const sendToN8n = async (
     });
 
     if (!response.ok) {
-      throw new Error(`Erreur HTTP: ${response.status}`);
+      throw new Error(`Erreur HTTP: ${response.status} - ${response.statusText}`);
     }
 
-    const result = await response.json();
+    let result;
+    const contentType = response.headers.get('content-type');
+    
+    try {
+      // Essayer de parser en JSON si possible
+      if (contentType && contentType.includes('application/json')) {
+        result = await response.json();
+      } else {
+        // Sinon, lire comme texte
+        result = await response.text();
+      }
+    } catch (parseError) {
+      console.warn('Impossible de parser la réponse, utilisation du status HTTP:', parseError);
+      result = { status: 'success', message: 'Webhook exécuté avec succès' };
+    }
+    
+    console.log(`Réponse n8n (${webhookType}):`, result);
     
     return {
       success: true,
-      message: 'Données envoyées avec succès',
+      message: result?.message || 'Données envoyées avec succès',
       data: result
     };
   } catch (error) {
     console.error(`Erreur envoi n8n (${webhookType}):`, error);
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Erreur inconnue'
+      message: error instanceof Error ? error.message : 'Erreur inconnue lors de l\'envoi'
     };
   }
 };
