@@ -85,8 +85,36 @@ export const modifierRendezVous = async (rdvId: string, modifications: any, user
   return sendToN8n('MODIFICATION', { rdvId, modifications }, userId);
 };
 
-export const annulerRendezVous = async (rdvId: string, raison?: string, userId?: string) => {
-  return sendToN8n('ANNULATION', { rdvId, raison }, userId);
+export const annulerRendezVous = async (rdvId: string, raison?: string, userId?: string): Promise<ApiResponse> => {
+  try {
+    const payload = {
+      rdvId,
+      raison,
+      userId: userId || getUserId(),
+      timestamp: new Date().toISOString()
+    };
+
+    const response = await fetch('http://localhost:5678/webhook-test/cancel-reservation', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    return { success: true, message: 'Rendez-vous annulé avec succès', data: result };
+  } catch (error) {
+    console.error('Erreur lors de l\'annulation du rendez-vous:', error);
+    return { 
+      success: false, 
+      message: error instanceof Error ? error.message : 'Erreur inconnue'
+    };
+  }
 };
 
 export const envoyerSatisfaction = async (feedbackData: {
