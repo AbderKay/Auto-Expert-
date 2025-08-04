@@ -58,6 +58,7 @@ const Satisfaction = () => {
       try {
         const userId = getUserId();
         
+        // Récupérer les rendez-vous confirmés
         const { data: rendezVousData, error } = await supabase
           .from('rendez_vous')
           .select('*')
@@ -70,12 +71,28 @@ const Satisfaction = () => {
           return;
         }
 
-        const rdvFormates = rendezVousData?.map(rdv => ({
+        // Récupérer les feedbacks déjà soumis pour éviter les doublons
+        const { data: feedbacksExistants, error: feedbackError } = await supabase
+          .from('feedback_clients')
+          .select('rdv_id')
+          .eq('user_id', userId);
+
+        if (feedbackError) {
+          console.error('Erreur lors du chargement des feedbacks existants:', feedbackError);
+        }
+
+        const rdvDejaEvalues = feedbacksExistants?.map(f => f.rdv_id) || [];
+
+        // Filtrer les rendez-vous non encore évalués
+        const rdvNonEvalues = rendezVousData?.filter(rdv => !rdvDejaEvalues.includes(rdv.id)) || [];
+
+        const rdvFormates = rdvNonEvalues.map(rdv => ({
           id: rdv.id.toString(),
           date: rdv.date_rdv,
+          heure: rdv.heure_rdv,
           service: rdv.service || 'Service non spécifié',
           vehicule: rdv.vehicule || 'Véhicule non spécifié'
-        })) || [];
+        }));
 
         setRdvTermines(rdvFormates);
       } catch (error) {
@@ -113,7 +130,7 @@ const Satisfaction = () => {
       // Envoyer vers n8n
       const result = await envoyerSatisfaction(feedbackData, userId);
 
-      // Sauvegarder en base de données Supabase
+      // Sauvegarder en base de données Supabase avec toutes les évaluations
       const { error: dbError } = await supabase
         .from('feedback_clients')
         .insert({
@@ -294,13 +311,19 @@ const Satisfaction = () => {
                                     <SelectValue placeholder="Sélectionnez le rendez-vous" />
                                   </SelectTrigger>
                                 </FormControl>
-                                <SelectContent>
-                                  {rdvTermines.map((rdv) => (
-                                    <SelectItem key={rdv.id} value={rdv.id}>
-                                      {rdv.date} - {rdv.service} ({rdv.vehicule})
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
+                                 <SelectContent>
+                                   {rdvTermines.length > 0 ? (
+                                     rdvTermines.map((rdv) => (
+                                       <SelectItem key={rdv.id} value={rdv.id}>
+                                         {rdv.date} {rdv.heure ? `à ${rdv.heure}` : ''} - {rdv.service} ({rdv.vehicule})
+                                       </SelectItem>
+                                     ))
+                                   ) : (
+                                     <SelectItem value="" disabled>
+                                       Aucun rendez-vous confirmé à évaluer
+                                     </SelectItem>
+                                   )}
+                                 </SelectContent>
                               </Select>
                               <FormMessage />
                             </FormItem>
