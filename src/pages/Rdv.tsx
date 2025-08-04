@@ -89,19 +89,11 @@ const Rdv = () => {
 
       console.log('Envoi de la réservation:', reservationData);
 
-      // Envoyer UNIQUEMENT à n8n - qui se chargera de l'enregistrement en base
-      const result = await envoyerReservation(reservationData, userId);
+      // Envoyer à n8n - le workflow gère entièrement la réponse
+      await envoyerReservation(reservationData, userId);
 
-      if (result.success) {
-        setIsSubmitted(true);
-        toast({
-          title: '✅ Réservation confirmée !',
-          description: 'Votre rendez-vous a été enregistré. Vous recevrez une confirmation par email.',
-        });
-        form.reset();
-      } else {
-        throw new Error(result.message || 'Erreur lors de la réservation');
-      }
+      // n8n gère la réponse - pas de traitement automatique
+      console.log('Réservation envoyée à n8n pour traitement');
     } catch (error) {
       console.error('Erreur lors de la réservation:', error);
       toast({
