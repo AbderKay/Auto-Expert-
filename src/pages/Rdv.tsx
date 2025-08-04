@@ -89,32 +89,8 @@ const Rdv = () => {
 
       console.log('Envoi de la réservation:', reservationData);
 
-      // Enregistrer dans Supabase
-      const { data: supabaseData, error: supabaseError } = await supabase
-        .from('rendez_vous')
-        .insert({
-          user_id: userId,
-          nom_client: data.nom,
-          email_client: data.email,
-          telephone_client: data.telephone,
-          vehicule: data.vehicule,
-          date_rdv: format(data.date, 'yyyy-MM-dd'),
-          heure_rdv: data.heure,
-          service: data.typeIntervention.join(', '),
-          status: 'pending'
-        })
-        .select()
-        .single();
-
-      if (supabaseError) {
-        console.error('Erreur Supabase:', supabaseError);
-        throw new Error('Erreur lors de l\'enregistrement en base de données');
-      }
-
-      console.log('RDV enregistré en base:', supabaseData);
-
-      // Envoyer à n8n en parallèle
-      const result = await envoyerReservation(reservationData);
+      // Envoyer UNIQUEMENT à n8n - qui se chargera de l'enregistrement en base
+      const result = await envoyerReservation(reservationData, userId);
 
       if (result.success) {
         setIsSubmitted(true);
@@ -124,14 +100,7 @@ const Rdv = () => {
         });
         form.reset();
       } else {
-        console.warn('Erreur n8n mais RDV enregistré en base:', result.message);
-        // Même si n8n échoue, le RDV est en base donc on considère le succès
-        setIsSubmitted(true);
-        toast({
-          title: '✅ Réservation confirmée !',
-          description: 'Votre rendez-vous a été enregistré.',
-        });
-        form.reset();
+        throw new Error(result.message || 'Erreur lors de la réservation');
       }
     } catch (error) {
       console.error('Erreur lors de la réservation:', error);

@@ -94,8 +94,8 @@ export const envoyerReservation = async (formData: {
   heure: string;
   typeIntervention: string;
   commentaires?: string;
-}) => {
-  return sendToN8n('RESERVATION', formData);
+}, userId?: string) => {
+  return sendToN8n('RESERVATION', formData, userId);
 };
 
 export const modifierRendezVous = async (rdvId: string, modifications: any, userId?: string) => {
