@@ -117,6 +117,7 @@ const Index = () => {
                 variant="outline" 
                 size="lg" 
                 className="text-lg px-8 py-4 border-white text-white hover:bg-white hover:text-black"
+                onClick={() => window.location.href = 'tel:+33123456789'}
               >
                 <Phone className="mr-2 h-5 w-5" />
                 Nous Contacter

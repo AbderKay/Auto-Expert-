@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { toast } from '@/hooks/use-toast';
@@ -29,7 +30,7 @@ const formSchema = z.object({
     required_error: 'Veuillez sélectionner une date',
   }),
   heure: z.string().min(1, 'Veuillez sélectionner une heure'),
-  typeIntervention: z.string().min(1, 'Veuillez sélectionner le type d\'intervention'),
+  typeIntervention: z.array(z.string()).min(1, 'Veuillez sélectionner au moins un type d\'intervention'),
   commentaires: z.string().optional(),
 });
 
@@ -47,7 +48,7 @@ const Rdv = () => {
       telephone: '',
       vehicule: '',
       heure: '',
-      typeIntervention: '',
+      typeIntervention: [],
       commentaires: '',
     },
   });
@@ -82,7 +83,7 @@ const Rdv = () => {
         vehicule: data.vehicule,
         date: format(data.date, 'yyyy-MM-dd'),
         heure: data.heure,
-        typeIntervention: data.typeIntervention,
+        typeIntervention: data.typeIntervention.join(', '),
         commentaires: data.commentaires || '',
       };
 
@@ -99,7 +100,7 @@ const Rdv = () => {
           vehicule: data.vehicule,
           date_rdv: format(data.date, 'yyyy-MM-dd'),
           heure_rdv: data.heure,
-          service: data.typeIntervention,
+          service: data.typeIntervention.join(', '),
           status: 'confirmed'
         })
         .select()
@@ -388,21 +389,30 @@ const Rdv = () => {
                           name="typeIntervention"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Type d'intervention *</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Sélectionnez le type d'intervention" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {typesIntervention.map((type) => (
-                                    <SelectItem key={type} value={type}>
+                              <FormLabel>Type d'intervention * (sélection multiple possible)</FormLabel>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 border rounded-md p-4">
+                                {typesIntervention.map((type) => (
+                                  <div key={type} className="flex items-center space-x-2">
+                                    <Checkbox
+                                      id={type}
+                                      checked={field.value?.includes(type)}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) {
+                                          field.onChange([...field.value, type]);
+                                        } else {
+                                          field.onChange(field.value?.filter((item: string) => item !== type));
+                                        }
+                                      }}
+                                    />
+                                    <Label
+                                      htmlFor={type}
+                                      className="text-sm font-normal cursor-pointer"
+                                    >
                                       {type}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                                    </Label>
+                                  </div>
+                                ))}
+                              </div>
                               <FormMessage />
                             </FormItem>
                           )}

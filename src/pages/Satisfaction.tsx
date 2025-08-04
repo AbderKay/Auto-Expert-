@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -14,6 +14,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import Layout from '@/components/Layout/Layout';
 import { Star, Send, CheckCircle, Loader2, ThumbsUp, MessageSquare } from 'lucide-react';
 import { envoyerSatisfaction, getUserId } from '@/utils/n8nApi';
+import { supabase } from '@/integrations/supabase/client';
 
 const formSchema = z.object({
   rdvId: z.string().min(1, 'Veuillez sélectionner un rendez-vous'),
@@ -30,25 +31,11 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-// Données mockées des RDV terminés
-const rdvTermines = [
-  {
-    id: 'rdv_001',
-    date: '2024-01-20',
-    intervention: 'Diagnostic électronique',
-    vehicule: 'Renault Clio 2020'
-  },
-  {
-    id: 'rdv_002',
-    date: '2024-01-15',
-    intervention: 'Entretien périodique',
-    vehicule: 'Peugeot 308 2019'
-  }
-];
 
 const Satisfaction = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [rdvTermines, setRdvTermines] = useState<any[]>([]);
   const [currentNote, setCurrentNote] = useState(0);
   const [hoveredStar, setHoveredStar] = useState(0);
 
@@ -65,6 +52,39 @@ const Satisfaction = () => {
       delaiIntervention: 0,
     },
   });
+
+  useEffect(() => {
+    const chargerRdvConfirmes = async () => {
+      try {
+        const userId = getUserId();
+        
+        const { data: rendezVousData, error } = await supabase
+          .from('rendez_vous')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('status', 'confirmé')
+          .order('date_rdv', { ascending: false });
+
+        if (error) {
+          console.error('Erreur lors du chargement des rendez-vous confirmés:', error);
+          return;
+        }
+
+        const rdvFormates = rendezVousData?.map(rdv => ({
+          id: rdv.id.toString(),
+          date: rdv.date_rdv,
+          service: rdv.service || 'Service non spécifié',
+          vehicule: rdv.vehicule || 'Véhicule non spécifié'
+        })) || [];
+
+        setRdvTermines(rdvFormates);
+      } catch (error) {
+        console.error('Erreur lors du chargement:', error);
+      }
+    };
+
+    chargerRdvConfirmes();
+  }, []);
 
   const onSubmit = async (data: FormData) => {
     setIsLoading(true);
@@ -255,7 +275,7 @@ const Satisfaction = () => {
                                 <SelectContent>
                                   {rdvTermines.map((rdv) => (
                                     <SelectItem key={rdv.id} value={rdv.id}>
-                                      {rdv.date} - {rdv.intervention} ({rdv.vehicule})
+                                      {rdv.date} - {rdv.service} ({rdv.vehicule})
                                     </SelectItem>
                                   ))}
                                 </SelectContent>

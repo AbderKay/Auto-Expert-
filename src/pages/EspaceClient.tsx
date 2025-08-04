@@ -25,6 +25,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { modifierRendezVous, annulerRendezVous, getUserId } from '@/utils/n8nApi';
 import { supabase } from '@/integrations/supabase/client';
+import DevisForm from '@/components/DevisForm';
 
 // Données mockées pour la démonstration
 const mockRendezVous = [
@@ -521,9 +522,6 @@ const EspaceClient = () => {
                                 <p className="text-sm">
                                   <strong>Intervention:</strong> {rdv.typeIntervention}
                                 </p>
-                                <p className="text-sm">
-                                  <strong>Technicien:</strong> {rdv.technicien}
-                                </p>
                                 {rdv.commentaires && (
                                   <p className="text-sm text-muted-foreground">
                                     <strong>Commentaires:</strong> {rdv.commentaires}
@@ -677,112 +675,25 @@ const EspaceClient = () => {
                                 <p className="text-sm">
                                   <strong>Intervention:</strong> {rdv.typeIntervention}
                                 </p>
-                                <p className="text-sm">
-                                  <strong>Technicien:</strong> {rdv.technicien}
-                                </p>
                                 {rdv.commentaires && (
                                   <p className="text-sm text-muted-foreground">
                                     <strong>Commentaires:</strong> {rdv.commentaires}
                                   </p>
                                 )}
                               </div>
-                              <div className="flex space-x-2">
-                                <Dialog>
-                                  <DialogTrigger asChild>
-                                    <Button variant="outline" size="sm" className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-300">
-                                      <Edit className="h-4 w-4 mr-1" />
-                                      Modifier
-                                    </Button>
-                                  </DialogTrigger>
-                                  <DialogContent className="max-w-md">
-                                    <DialogHeader>
-                                      <DialogTitle className="flex items-center gap-2">
-                                        <Edit className="h-5 w-5 text-blue-600" />
-                                        Demander une modification
-                                      </DialogTitle>
-                                      <DialogDescription>
-                                        Cette intervention est terminée. Vous pouvez demander une modification ou une intervention complémentaire.
-                                      </DialogDescription>
-                                    </DialogHeader>
-                                    <div className="space-y-3 mt-4">
-                                      <Button 
-                                        onClick={() => handleModifierRdv(rdv.id)}
-                                        disabled={isLoading}
-                                        className="w-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2"
-                                      >
-                                        <Calendar className="h-4 w-4" />
-                                        Nouvelle intervention
-                                      </Button>
-                                      <Button 
-                                        onClick={() => handleModifierRdv(rdv.id)}
-                                        disabled={isLoading}
-                                        variant="outline"
-                                        className="w-full border-blue-300 text-blue-700 hover:bg-blue-50 flex items-center justify-center gap-2"
-                                      >
-                                        <FileText className="h-4 w-4" />
-                                        Signaler un problème
-                                      </Button>
-                                      <p className="text-xs text-muted-foreground text-center mt-3">
-                                        Un conseiller vous contactera pour vous assister
-                                      </p>
-                                    </div>
-                                  </DialogContent>
-                                </Dialog>
-                                
-                                <Dialog>
-                                  <DialogTrigger asChild>
-                                    <Button variant="outline" size="sm" className="bg-red-50 text-red-700 hover:bg-red-100 border-red-300">
-                                      <Trash2 className="h-4 w-4 mr-1" />
-                                      Annuler
-                                    </Button>
-                                  </DialogTrigger>
-                                  <DialogContent className="max-w-md">
-                                    <DialogHeader>
-                                      <DialogTitle className="flex items-center gap-2">
-                                        <AlertCircle className="h-5 w-5 text-red-600" />
-                                        Demande d'annulation
-                                      </DialogTitle>
-                                      <DialogDescription>
-                                        Cette intervention est terminée. Voulez-vous faire une demande d'annulation ou de remboursement ?
-                                      </DialogDescription>
-                                    </DialogHeader>
-                                    <div className="bg-yellow-50 p-4 rounded-lg mt-4">
-                                      <div className="flex items-start gap-3">
-                                        <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
-                                        <div className="text-sm text-yellow-800">
-                                          <p className="font-medium">Intervention concernée :</p>
-                                          <p>{format(new Date(rdv.date), 'EEEE d MMMM yyyy', { locale: fr })} à {rdv.heure}</p>
-                                          <p>{rdv.typeIntervention}</p>
-                                        </div>
-                                      </div>
-                                    </div>
-                                    <div className="flex space-x-3 mt-6">
-                                      <Button variant="outline" className="flex-1 border-gray-300">
-                                        Fermer
-                                      </Button>
-                                      <Button 
-                                        onClick={() => handleModifierRdv(rdv.id)}
-                                        disabled={isLoading}
-                                        className="flex-1 bg-red-600 hover:bg-red-700 text-white"
-                                      >
-                                        {isLoading ? "Envoi..." : "Faire la demande"}
-                                      </Button>
-                                    </div>
-                                  </DialogContent>
-                                </Dialog>
-                                
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  className="bg-green-50 text-green-700 hover:bg-green-100 border-green-300"
-                                  asChild
-                                >
-                                  <a href="/satisfaction" className="flex items-center space-x-2">
-                                    <CheckCircle className="h-4 w-4" />
-                                    <span>Évaluer</span>
-                                  </a>
-                                </Button>
-                              </div>
+                               <div className="flex space-x-2">
+                                 <Button 
+                                   variant="outline" 
+                                   size="sm" 
+                                   className="bg-green-50 text-green-700 hover:bg-green-100 border-green-300"
+                                   asChild
+                                 >
+                                   <a href="/satisfaction" className="flex items-center space-x-2">
+                                     <CheckCircle className="h-4 w-4" />
+                                     <span>Évaluer</span>
+                                   </a>
+                                 </Button>
+                               </div>
                             </div>
                           </CardContent>
                         </Card>
@@ -794,6 +705,10 @@ const EspaceClient = () => {
 
               {/* Devis */}
               <TabsContent value="devis" className="space-y-6">
+                {/* Formulaire de demande de devis */}
+                <DevisForm />
+
+                {/* Liste des devis existants */}
                 <Card className="card-auto">
                   <CardHeader>
                     <CardTitle className="flex items-center space-x-2">
