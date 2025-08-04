@@ -5,10 +5,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { toast } from '@/hooks/use-toast';
 import Layout from '@/components/Layout/Layout';
 import { 
-  Calendar, 
+  Calendar as CalendarIcon, 
   Clock, 
   Car, 
   FileText, 
@@ -26,6 +31,10 @@ import { fr } from 'date-fns/locale';
 import { modifierRendezVous, annulerRendezVous, getUserId } from '@/utils/n8nApi';
 import { supabase } from '@/integrations/supabase/client';
 import DevisForm from '@/components/DevisForm';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { cn } from '@/lib/utils';
 
 // Données mockées pour la démonstration
 const mockRendezVous = [
@@ -72,6 +81,17 @@ const mockDevis = [
   }
 ];
 
+// Schema de validation pour la modification
+const modificationSchema = z.object({
+  date: z.date({
+    required_error: "La date est requise",
+  }),
+  heure: z.string().min(1, "L'heure est requise"),
+  typeIntervention: z.array(z.string()).min(1, "Au moins un type d'intervention est requis"),
+});
+
+type ModificationFormData = z.infer<typeof modificationSchema>;
+
 const EspaceClient = () => {
   const [rdvAVenir, setRdvAVenir] = useState<any[]>([]);
   const [rdvPasses, setRdvPasses] = useState<any[]>([]);
@@ -79,7 +99,23 @@ const EspaceClient = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [session, setSession] = useState<any>(null);
+  const [isModificationModalOpen, setIsModificationModalOpen] = useState(false);
+  const [selectedRdv, setSelectedRdv] = useState<any>(null);
   const navigate = useNavigate();
+
+  // Types d'intervention disponibles
+  const typesIntervention = [
+    "Entretien périodique",
+    "Diagnostic électronique", 
+    "Réparation moteur",
+    "Révision complète",
+    "Changement d'huile",
+    "Pneus",
+    "Freinage",
+    "Climatisation",
+    "Carrosserie",
+    "Autre"
+  ];
 
   const chargerRendezVous = async () => {
     try {
@@ -239,34 +275,233 @@ const EspaceClient = () => {
     };
   }, [navigate]);
 
-  const handleModifierRdv = async (rdvId: string) => {
+  const handleModifierRdv = (rdv: any) => {
+    setSelectedRdv(rdv);
+    setIsModificationModalOpen(true);
+  };
+
+  const handleSaveModification = async (data: ModificationFormData) => {
+    if (!selectedRdv) return;
+
     setIsLoading(true);
     try {
-      const userId = getUserId();
-      const modifications = {
-        action: 'demande_modification',
-        message: 'Client souhaite modifier son RDV'
-      };
-      
-      const result = await modifierRendezVous(rdvId, modifications, userId);
-      
-      if (result.success) {
-        toast({
-          title: '✅ Demande envoyée',
-          description: 'Votre demande de modification a été transmise. Nous vous recontacterons rapidement.',
-        });
-      } else {
-        throw new Error(result.message);
+      // Vérifier si le créneau est disponible
+      const { data: conflictRdv, error: checkError } = await supabase
+        .from('rendez_vous')
+        .select('*')
+        .eq('date_rdv', format(data.date, 'yyyy-MM-dd'))
+        .eq('heure_rdv', data.heure)
+        .neq('id', parseInt(selectedRdv.id))
+        .neq('status', 'annulé');
+
+      if (checkError) {
+        throw new Error('Erreur lors de la vérification de disponibilité');
       }
+
+      if (conflictRdv && conflictRdv.length > 0) {
+        toast({
+          title: '❌ Créneau non disponible',
+          description: 'Ce créneau est déjà occupé. Veuillez choisir une autre date/heure.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Mettre à jour le rendez-vous
+      const { error: updateError } = await supabase
+        .from('rendez_vous')
+        .update({
+          date_rdv: format(data.date, 'yyyy-MM-dd'),
+          heure_rdv: data.heure,
+          service: data.typeIntervention.join(', '),
+          status: 'pending' // Remet en pending après modification
+        })
+        .eq('id', parseInt(selectedRdv.id));
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      // Recharger les données
+      await chargerRendezVous();
+      setIsModificationModalOpen(false);
+      setSelectedRdv(null);
+
+      toast({
+        title: '✅ Rendez-vous modifié',
+        description: 'Votre rendez-vous a été modifié avec succès et est en attente de confirmation.',
+      });
     } catch (error) {
+      console.error('Erreur lors de la modification:', error);
       toast({
         title: '❌ Erreur',
-        description: 'Impossible d\'envoyer votre demande. Veuillez réessayer.',
+        description: 'Impossible de modifier le rendez-vous. Veuillez réessayer.',
         variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const ModificationModal = () => {
+    const form = useForm<ModificationFormData>({
+      resolver: zodResolver(modificationSchema),
+      defaultValues: {
+        date: selectedRdv ? new Date(selectedRdv.date) : new Date(),
+        heure: selectedRdv?.heure || '',
+        typeIntervention: selectedRdv?.typeIntervention ? [selectedRdv.typeIntervention] : [],
+      },
+    });
+
+    const handleSubmit = (data: ModificationFormData) => {
+      handleSaveModification(data);
+    };
+
+    // Heures disponibles
+    const heuresDisponibles = [
+      "08:00", "08:30", "09:00", "09:30", "10:00", "10:30",
+      "11:00", "11:30", "12:00", "12:30", "13:00", "13:30",
+      "14:00", "14:30", "15:00", "15:30", "16:00", "16:30",
+      "17:00", "17:30"
+    ];
+
+    return (
+      <Dialog open={isModificationModalOpen} onOpenChange={setIsModificationModalOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit className="h-5 w-5 text-blue-600" />
+              Modifier le rendez-vous
+            </DialogTitle>
+            <DialogDescription>
+              Modifiez la date, l'heure et le type d'intervention de votre rendez-vous.
+            </DialogDescription>
+          </DialogHeader>
+
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+              {/* Date */}
+              <FormField
+                control={form.control}
+                name="date"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Date du rendez-vous</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              format(field.value, "PPP", { locale: fr })
+                            ) : (
+                              <span>Sélectionner une date</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          disabled={(date) =>
+                            date < new Date() || date < new Date("1900-01-01")
+                          }
+                          initialFocus
+                          className="pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Heure */}
+              <FormField
+                control={form.control}
+                name="heure"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Heure du rendez-vous</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionnez une heure" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {heuresDisponibles.map((heure) => (
+                          <SelectItem key={heure} value={heure}>
+                            {heure}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Types d'intervention */}
+              <FormField
+                control={form.control}
+                name="typeIntervention"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Types d'intervention</FormLabel>
+                    <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
+                      {typesIntervention.map((type) => (
+                        <label key={type} className="flex items-center space-x-2 text-sm">
+                          <input
+                            type="checkbox"
+                            checked={field.value.includes(type)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                field.onChange([...field.value, type]);
+                              } else {
+                                field.onChange(field.value.filter(t => t !== type));
+                              }
+                            }}
+                            className="rounded border-gray-300"
+                          />
+                          <span>{type}</span>
+                        </label>
+                      ))}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-end space-x-3 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsModificationModalOpen(false)}
+                >
+                  Annuler
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  {isLoading ? "Enregistrement..." : "Enregistrer les modifications"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+    );
   };
 
   const handleAnnulerRdv = async (rdvId: string) => {
@@ -461,10 +696,13 @@ const EspaceClient = () => {
               </Button>
             </div>
 
+            {/* Modal de modification */}
+            <ModificationModal />
+
             <Tabs defaultValue="rdv" className="space-y-8">
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="rdv" className="flex items-center space-x-2">
-                  <Calendar className="h-4 w-4" />
+                  <CalendarIcon className="h-4 w-4" />
                   <span>Rendez-vous</span>
                 </TabsTrigger>
                 <TabsTrigger value="historique" className="flex items-center space-x-2">
@@ -482,7 +720,7 @@ const EspaceClient = () => {
                 <Card className="card-auto">
                   <CardHeader>
                     <CardTitle className="flex items-center space-x-2">
-                      <Calendar className="h-5 w-5 text-primary" />
+                      <CalendarIcon className="h-5 w-5 text-primary" />
                       <span>Rendez-vous à venir</span>
                     </CardTitle>
                     <CardDescription>
@@ -492,7 +730,7 @@ const EspaceClient = () => {
                   <CardContent className="space-y-4">
                     {rdvAVenir.length === 0 ? (
                       <div className="text-center py-8 text-muted-foreground">
-                        <Calendar className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                        <CalendarIcon className="mx-auto h-12 w-12 mb-4 opacity-50" />
                         <p>Aucun rendez-vous à venir</p>
                         <Button asChild className="mt-4 btn-primary">
                           <a href="/rdv">Prendre rendez-vous</a>
@@ -506,7 +744,7 @@ const EspaceClient = () => {
                               <div className="space-y-2">
                                 <div className="flex items-center space-x-4">
                                   <div className="flex items-center space-x-2 text-lg font-semibold">
-                                    <Calendar className="h-4 w-4 text-primary" />
+                                    <CalendarIcon className="h-4 w-4 text-primary" />
                                     <span>{format(new Date(rdv.date), 'EEEE d MMMM yyyy', { locale: fr })}</span>
                                   </div>
                                   <div className="flex items-center space-x-2">
@@ -540,47 +778,15 @@ const EspaceClient = () => {
                                   Confirmer
                                 </Button>
                                 
-                                <Dialog>
-                                  <DialogTrigger asChild>
-                                    <Button variant="outline" size="sm" className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-300">
-                                      <Edit className="h-4 w-4 mr-1" />
-                                      Modifier
-                                    </Button>
-                                  </DialogTrigger>
-                                  <DialogContent className="max-w-md">
-                                    <DialogHeader>
-                                      <DialogTitle className="flex items-center gap-2">
-                                        <Edit className="h-5 w-5 text-blue-600" />
-                                        Modifier le rendez-vous
-                                      </DialogTitle>
-                                      <DialogDescription>
-                                        Choisissez le type de modification que vous souhaitez effectuer. Notre équipe vous recontactera dans les plus brefs délais.
-                                      </DialogDescription>
-                                    </DialogHeader>
-                                    <div className="space-y-3 mt-4">
-                                      <Button 
-                                        onClick={() => handleModifierRdv(rdv.id)}
-                                        disabled={isLoading}
-                                        className="w-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2"
-                                      >
-                                        <Calendar className="h-4 w-4" />
-                                        Changer la date/heure
-                                      </Button>
-                                      <Button 
-                                        onClick={() => handleModifierRdv(rdv.id)}
-                                        disabled={isLoading}
-                                        variant="outline"
-                                        className="w-full border-blue-300 text-blue-700 hover:bg-blue-50 flex items-center justify-center gap-2"
-                                      >
-                                        <Car className="h-4 w-4" />
-                                        Modifier l'intervention
-                                      </Button>
-                                      <p className="text-xs text-muted-foreground text-center mt-3">
-                                        Un conseiller vous contactera pour finaliser la modification
-                                      </p>
-                                    </div>
-                                  </DialogContent>
-                                </Dialog>
+                                <Button 
+                                  onClick={() => handleModifierRdv(rdv)}
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-300"
+                                >
+                                  <Edit className="h-4 w-4 mr-1" />
+                                  Modifier
+                                </Button>
                                 
                                 <Dialog>
                                   <DialogTrigger asChild>
@@ -659,7 +865,7 @@ const EspaceClient = () => {
                               <div className="space-y-2">
                                 <div className="flex items-center space-x-4">
                                   <div className="flex items-center space-x-2 text-lg font-semibold">
-                                    <Calendar className="h-4 w-4 text-green-600" />
+                                    <CalendarIcon className="h-4 w-4 text-green-600" />
                                     <span>{format(new Date(rdv.date), 'EEEE d MMMM yyyy', { locale: fr })}</span>
                                   </div>
                                   <div className="flex items-center space-x-2">
