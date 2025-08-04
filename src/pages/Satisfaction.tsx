@@ -92,6 +92,9 @@ const Satisfaction = () => {
     try {
       const userId = getUserId();
       
+      // Récupérer les informations du rendez-vous sélectionné
+      const rdvSelectionne = rdvTermines.find(rdv => rdv.id === data.rdvId);
+      
       const feedbackData = {
         rdvId: data.rdvId,
         note: data.note,
@@ -107,13 +110,32 @@ const Satisfaction = () => {
 
       console.log('Envoi du feedback:', feedbackData);
 
+      // Envoyer vers n8n
       const result = await envoyerSatisfaction(feedbackData, userId);
+
+      // Sauvegarder en base de données Supabase
+      const { error: dbError } = await supabase
+        .from('feedback_clients')
+        .insert({
+          user_id: userId,
+          rdv_id: parseInt(data.rdvId),
+          note: data.note,
+          commentaire: data.commentaire,
+          service: rdvSelectionne?.service || 'Service non spécifié',
+          nom_client: '', // Sera rempli automatiquement si nécessaire
+          email_client: '' // Sera rempli automatiquement si nécessaire
+        });
+
+      if (dbError) {
+        console.error('Erreur lors de la sauvegarde en base:', dbError);
+        throw new Error('Erreur lors de la sauvegarde de votre évaluation');
+      }
 
       if (result.success) {
         setIsSubmitted(true);
         toast({
           title: '✅ Merci pour votre avis !',
-          description: 'Votre évaluation nous aide à améliorer nos services.',
+          description: 'Votre évaluation a été enregistrée avec succès.',
         });
         form.reset();
       } else {
