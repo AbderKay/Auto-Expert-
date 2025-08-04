@@ -162,15 +162,18 @@ const EspaceClient = () => {
           telephone_client: rdv.telephone_client
         }));
 
-        // Séparer les RDV selon leur statut (optimisé)
+        // Séparer les RDV selon leur statut
         const aVenir = [];
         const passes = [];
         
         for (const rdv of rdvFormates) {
-          if (rdv.statut === 'terminé' || rdv.statut === 'completed') {
+          if (rdv.statut === 'confirmed') {
+            // Les RDV confirmés vont dans l'historique
+            passes.push(rdv);
+          } else if (rdv.statut === 'terminé' || rdv.statut === 'completed') {
             passes.push(rdv);
           } else {
-            // Les rendez-vous pending et confirmed restent dans "à venir"
+            // Les RDV pending restent dans "à venir"
             aVenir.push(rdv);
           }
         }
@@ -306,7 +309,7 @@ const EspaceClient = () => {
 
     setIsLoading(true);
     try {
-      // Vérifier si le créneau est disponible (optimisé avec une seule requête)
+      // Vérifier si le créneau est disponible
       const { data: conflictRdv, error: checkError } = await supabase
         .from('rendez_vous')
         .select('id')
@@ -329,13 +332,13 @@ const EspaceClient = () => {
         return;
       }
 
-      // Mettre à jour le rendez-vous
+      // Mettre à jour le rendez-vous - remplacer complètement le service
       const { error: updateError } = await supabase
         .from('rendez_vous')
         .update({
           date_rdv: format(data.date, 'yyyy-MM-dd'),
           heure_rdv: data.heure,
-          service: data.typeIntervention.join(', '),
+          service: data.typeIntervention.join(', '), // Remplace complètement, ne cumule pas
           status: 'pending' // Remet en pending après modification
         })
         .eq('id', parseInt(selectedRdv.id));
@@ -344,19 +347,24 @@ const EspaceClient = () => {
         throw updateError;
       }
 
-      // Mise à jour locale immédiate pour éviter le rechargement
+      // Mise à jour locale immédiate
       const updatedRdv = {
         ...selectedRdv,
         date: format(data.date, 'yyyy-MM-dd'),
         heure: data.heure,
-        typeIntervention: data.typeIntervention.join(', '),
+        typeIntervention: data.typeIntervention.join(', '), // Service remplacé
         statut: 'pending'
       };
 
-      // Mettre à jour dans rdvAVenir et s'assurer qu'il n'est pas dans rdvPasses
-      setRdvAVenir(prev => prev.map(rdv => 
-        rdv.id === selectedRdv.id ? updatedRdv : rdv
-      ));
+      // Ajouter ou mettre à jour dans rdvAVenir
+      setRdvAVenir(prev => {
+        const exists = prev.find(rdv => rdv.id === selectedRdv.id);
+        if (exists) {
+          return prev.map(rdv => rdv.id === selectedRdv.id ? updatedRdv : rdv);
+        } else {
+          return [...prev, updatedRdv];
+        }
+      });
       
       // Supprimer de rdvPasses si il y était
       setRdvPasses(prev => prev.filter(rdv => rdv.id !== selectedRdv.id));
@@ -386,7 +394,7 @@ const EspaceClient = () => {
       defaultValues: {
         date: selectedRdv ? new Date(selectedRdv.date) : new Date(),
         heure: selectedRdv?.heure || '',
-        typeIntervention: selectedRdv?.typeIntervention ? [selectedRdv.typeIntervention] : [],
+        typeIntervention: [], // Réinitialiser vide pour permettre une nouvelle sélection
       },
     });
 
@@ -572,15 +580,24 @@ const EspaceClient = () => {
   const handleConfirmerRdv = async (rdvId: string) => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('rendez_vous')
         .update({ status: 'confirmed' })
         .eq('id', parseInt(rdvId));
 
       if (error) throw error;
 
-      // Recharger les données pour mettre à jour l'affichage
-      await chargerRendezVous();
+      // Mise à jour locale : déplacer de "à venir" vers "historique"
+      const rdvToMove = rdvAVenir.find(rdv => rdv.id === rdvId);
+      if (rdvToMove) {
+        const confirmedRdv = { ...rdvToMove, statut: 'confirmed' };
+        
+        // Ajouter dans l'historique
+        setRdvPasses(prev => [confirmedRdv, ...prev]);
+        
+        // Supprimer de "à venir"
+        setRdvAVenir(prev => prev.filter(rdv => rdv.id !== rdvId));
+      }
       
       toast({
         title: '✅ Rendez-vous confirmé',
@@ -809,68 +826,73 @@ const EspaceClient = () => {
                                 )}
                               </div>
                               <div className="flex space-x-2">
-                                <Button 
-                                  onClick={() => handleConfirmerRdv(rdv.id)}
-                                  disabled={isLoading}
-                                  variant="outline" 
-                                  size="sm" 
-                                  className="bg-green-50 text-green-700 hover:bg-green-100 border-green-300"
-                                >
-                                  <CheckCircle className="h-4 w-4 mr-1" />
-                                  Confirmer
-                                </Button>
-                                
-                                <Button 
-                                  onClick={() => handleModifierRdv(rdv)}
-                                  variant="outline" 
-                                  size="sm" 
-                                  className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-300"
-                                >
-                                  <Edit className="h-4 w-4 mr-1" />
-                                  Modifier
-                                </Button>
-                                
-                                <Dialog>
-                                  <DialogTrigger asChild>
-                                    <Button variant="outline" size="sm" className="bg-red-50 text-red-700 hover:bg-red-100 border-red-300">
-                                      <Trash2 className="h-4 w-4 mr-1" />
-                                      Annuler
+                                {/* Afficher les boutons selon le statut */}
+                                {rdv.statut === 'pending' && (
+                                  <>
+                                    <Button 
+                                      onClick={() => handleConfirmerRdv(rdv.id)}
+                                      disabled={isLoading}
+                                      variant="outline" 
+                                      size="sm" 
+                                      className="bg-green-50 text-green-700 hover:bg-green-100 border-green-300"
+                                    >
+                                      <CheckCircle className="h-4 w-4 mr-1" />
+                                      Confirmer
                                     </Button>
-                                  </DialogTrigger>
-                                  <DialogContent className="max-w-md">
-                                    <DialogHeader>
-                                      <DialogTitle className="flex items-center gap-2">
-                                        <AlertCircle className="h-5 w-5 text-red-600" />
-                                        Annuler le rendez-vous
-                                      </DialogTitle>
-                                      <DialogDescription>
-                                        Êtes-vous sûr de vouloir annuler ce rendez-vous ? Cette action est irréversible et vous devrez reprendre un nouveau rendez-vous si nécessaire.
-                                      </DialogDescription>
-                                    </DialogHeader>
-                                    <div className="bg-red-50 p-4 rounded-lg mt-4">
-                                      <div className="flex items-start gap-3">
-                                        <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
-                                        <div className="text-sm text-red-800">
-                                          <p className="font-medium">Rendez-vous à annuler :</p>
-                                          <p>{format(new Date(rdv.date), 'EEEE d MMMM yyyy', { locale: fr })} à {rdv.heure}</p>
-                                          <p>{rdv.typeIntervention}</p>
+                                    
+                                    <Button 
+                                      onClick={() => handleModifierRdv(rdv)}
+                                      variant="outline" 
+                                      size="sm" 
+                                      className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-300"
+                                    >
+                                      <Edit className="h-4 w-4 mr-1" />
+                                      Modifier
+                                    </Button>
+                                    
+                                    <Dialog>
+                                      <DialogTrigger asChild>
+                                        <Button variant="outline" size="sm" className="bg-red-50 text-red-700 hover:bg-red-100 border-red-300">
+                                          <Trash2 className="h-4 w-4 mr-1" />
+                                          Annuler
+                                        </Button>
+                                      </DialogTrigger>
+                                      <DialogContent className="max-w-md">
+                                        <DialogHeader>
+                                          <DialogTitle className="flex items-center gap-2">
+                                            <AlertCircle className="h-5 w-5 text-red-600" />
+                                            Annuler le rendez-vous
+                                          </DialogTitle>
+                                          <DialogDescription>
+                                            Êtes-vous sûr de vouloir annuler ce rendez-vous ? Cette action est irréversible et vous devrez reprendre un nouveau rendez-vous si nécessaire.
+                                          </DialogDescription>
+                                        </DialogHeader>
+                                        <div className="bg-red-50 p-4 rounded-lg mt-4">
+                                          <div className="flex items-start gap-3">
+                                            <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+                                            <div className="text-sm text-red-800">
+                                              <p className="font-medium">Rendez-vous à annuler :</p>
+                                              <p>{format(new Date(rdv.date), 'EEEE d MMMM yyyy', { locale: fr })} à {rdv.heure}</p>
+                                              <p>{rdv.typeIntervention}</p>
+                                            </div>
+                                          </div>
                                         </div>
-                                      </div>
-                                    </div>
-                                    <div className="flex space-x-3 mt-6">
-                                      <Button variant="outline" className="flex-1 border-gray-300">
-                                        Non, garder
-                                      </Button>
-                                      <Button 
-                                        onClick={() => handleAnnulerRdv(rdv.id)}
-                                        disabled={isLoading}
-                                        className="flex-1 bg-red-600 hover:bg-red-700 text-white"
-                                      >
-                                        {isLoading ? "Annulation..." : "Oui, annuler"}
-                                      </Button>
-                                    </div>
-                                  </DialogContent>
-                                </Dialog>
+                                        <div className="flex space-x-3 mt-6">
+                                          <Button variant="outline" className="flex-1 border-gray-300">
+                                            Non, garder
+                                          </Button>
+                                          <Button 
+                                            onClick={() => handleAnnulerRdv(rdv.id)}
+                                            disabled={isLoading}
+                                            className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                                          >
+                                            {isLoading ? "Annulation..." : "Oui, annuler"}
+                                          </Button>
+                                        </div>
+                                      </DialogContent>
+                                    </Dialog>
+                                  </>
+                                )}
                               </div>
                             </div>
                           </CardContent>
