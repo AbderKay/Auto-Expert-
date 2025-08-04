@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import Layout from '@/components/Layout/Layout';
-import { Star, Send, CheckCircle, Loader2, ThumbsUp, MessageSquare, Calendar, Clock, Car, Wrench } from 'lucide-react';
+import { Star, Send, CheckCircle, Loader2, ThumbsUp, MessageSquare } from 'lucide-react';
 import { envoyerSatisfaction, getUserId } from '@/utils/n8nApi';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -36,8 +36,6 @@ const Satisfaction = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [rdvTermines, setRdvTermines] = useState<any[]>([]);
-  const [rdvEvalues, setRdvEvalues] = useState<number[]>([]);
-  const [selectedRdv, setSelectedRdv] = useState<any>(null);
   const [currentNote, setCurrentNote] = useState(0);
   const [hoveredStar, setHoveredStar] = useState(0);
 
@@ -56,46 +54,28 @@ const Satisfaction = () => {
   });
 
   useEffect(() => {
-    const chargerDonnees = async () => {
+    const chargerRdvConfirmes = async () => {
       try {
         const userId = getUserId();
         
-        // Charger les rendez-vous confirmés
-        const { data: rendezVousData, error: rdvError } = await supabase
+        const { data: rendezVousData, error } = await supabase
           .from('rendez_vous')
           .select('*')
           .eq('user_id', userId)
           .eq('status', 'confirmé')
           .order('date_rdv', { ascending: false });
 
-        if (rdvError) {
-          console.error('Erreur lors du chargement des rendez-vous confirmés:', rdvError);
+        if (error) {
+          console.error('Erreur lors du chargement des rendez-vous confirmés:', error);
           return;
         }
 
-        // Charger les évaluations déjà existantes
-        const { data: feedbackData, error: feedbackError } = await supabase
-          .from('feedback_clients')
-          .select('rdv_id')
-          .eq('user_id', userId);
-
-        if (feedbackError) {
-          console.error('Erreur lors du chargement des évaluations:', feedbackError);
-        }
-
-        const rdvDejaEvalues = feedbackData?.map(fb => fb.rdv_id) || [];
-        setRdvEvalues(rdvDejaEvalues);
-
-        // Filtrer les rendez-vous non encore évalués
-        const rdvFormates = rendezVousData
-          ?.filter(rdv => !rdvDejaEvalues.includes(rdv.id))
-          .map(rdv => ({
-            id: rdv.id.toString(),
-            date: rdv.date_rdv,
-            heure: rdv.heure_rdv,
-            service: rdv.service || 'Service non spécifié',
-            vehicule: rdv.vehicule || 'Véhicule non spécifié'
-          })) || [];
+        const rdvFormates = rendezVousData?.map(rdv => ({
+          id: rdv.id.toString(),
+          date: rdv.date_rdv,
+          service: rdv.service || 'Service non spécifié',
+          vehicule: rdv.vehicule || 'Véhicule non spécifié'
+        })) || [];
 
         setRdvTermines(rdvFormates);
       } catch (error) {
@@ -103,7 +83,7 @@ const Satisfaction = () => {
       }
     };
 
-    chargerDonnees();
+    chargerRdvConfirmes();
   }, []);
 
   const onSubmit = async (data: FormData) => {
@@ -152,10 +132,6 @@ const Satisfaction = () => {
       }
 
       if (result.success) {
-        // Retirer le rendez-vous de la liste après évaluation réussie
-        setRdvTermines(prev => prev.filter(rdv => rdv.id !== data.rdvId));
-        setSelectedRdv(null);
-        
         setIsSubmitted(true);
         toast({
           title: '✅ Merci pour votre avis !',
@@ -258,292 +234,118 @@ const Satisfaction = () => {
               </p>
             </div>
 
-            {/* Section des rendez-vous à évaluer */}
-            <div className="mb-8">
-              <Card className="card-auto">
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Calendar className="h-6 w-6 text-primary" />
-                    <span>Rendez-vous à évaluer</span>
-                  </CardTitle>
-                  <CardDescription>
-                    Sélectionnez un rendez-vous confirmé pour donner votre avis
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {rdvTermines.length === 0 ? (
-                    <div className="text-center py-8">
-                      <CheckCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                      <p className="text-muted-foreground">
-                        Aucun rendez-vous confirmé à évaluer pour le moment.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="grid gap-4">
-                      {rdvTermines.map((rdv) => (
-                        <Card 
-                          key={rdv.id} 
-                          className={`cursor-pointer transition-all hover:shadow-md border-2 ${
-                            selectedRdv?.id === rdv.id 
-                              ? 'border-primary bg-primary/5' 
-                              : 'border-border hover:border-primary/50'
-                          }`}
-                          onClick={() => {
-                            setSelectedRdv(rdv);
-                            form.setValue('rdvId', rdv.id);
-                          }}
-                        >
-                          <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center space-x-4">
-                                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                                  <Wrench className="h-6 w-6 text-primary" />
-                                </div>
-                                <div className="space-y-1">
-                                  <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                                    <Calendar className="h-4 w-4" />
-                                    <span>{rdv.date}</span>
-                                    {rdv.heure && (
-                                      <>
-                                        <Clock className="h-4 w-4 ml-2" />
-                                        <span>{rdv.heure}</span>
-                                      </>
-                                    )}
-                                  </div>
-                                  <p className="font-semibold">{rdv.service}</p>
-                                  <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                                    <Car className="h-4 w-4" />
-                                    <span>{rdv.vehicule}</span>
-                                  </div>
-                                </div>
-                              </div>
-                              <Button
-                                type="button"
-                                variant={selectedRdv?.id === rdv.id ? "default" : "outline"}
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedRdv(rdv);
-                                  form.setValue('rdvId', rdv.id);
-                                }}
-                              >
-                                {selectedRdv?.id === rdv.id ? 'Sélectionné' : 'Évaluer'}
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Informations */}
+              <div className="space-y-6">
+                <Card className="card-auto">
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <ThumbsUp className="h-5 w-5 text-primary" />
+                      <span>Pourquoi votre avis compte</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3 text-sm text-muted-foreground">
+                    <p>• Amélioration continue de nos services</p>
+                    <p>• Formation de notre équipe</p>
+                    <p>• Développement de nouveaux services</p>
+                    <p>• Garantie de satisfaction client</p>
+                  </CardContent>
+                </Card>
 
-            {/* Formulaire d'évaluation - Affiché seulement si un RDV est sélectionné */}
-            {selectedRdv && (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Informations */}
-                <div className="space-y-6">
-                  <Card className="card-auto">
-                    <CardHeader>
-                      <CardTitle className="flex items-center space-x-2">
-                        <ThumbsUp className="h-5 w-5 text-primary" />
-                        <span>Pourquoi votre avis compte</span>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3 text-sm text-muted-foreground">
-                      <p>• Amélioration continue de nos services</p>
-                      <p>• Formation de notre équipe</p>
-                      <p>• Développement de nouveaux services</p>
-                      <p>• Garantie de satisfaction client</p>
-                    </CardContent>
-                  </Card>
+                <Card className="card-auto">
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <MessageSquare className="h-5 w-5 text-primary" />
+                      <span>Vos commentaires</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-sm text-muted-foreground">
+                    <p>
+                      N'hésitez pas à être précis dans vos commentaires. 
+                      Cela nous aide à identifier les points d'amélioration 
+                      et à maintenir un service de qualité.
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
 
-                  <Card className="card-auto">
-                    <CardHeader>
-                      <CardTitle className="flex items-center space-x-2">
-                        <MessageSquare className="h-5 w-5 text-primary" />
-                        <span>Rendez-vous sélectionné</span>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2 text-sm">
-                      <div className="flex items-center space-x-2">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span>{selectedRdv.date}</span>
-                        {selectedRdv.heure && (
-                          <>
-                            <Clock className="h-4 w-4 text-muted-foreground ml-2" />
-                            <span>{selectedRdv.heure}</span>
-                          </>
-                        )}
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Wrench className="h-4 w-4 text-muted-foreground" />
-                        <span>{selectedRdv.service}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Car className="h-4 w-4 text-muted-foreground" />
-                        <span>{selectedRdv.vehicule}</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Formulaire d'évaluation */}
-                <div className="lg:col-span-2">
-                  <Card className="card-auto">
-                    <CardHeader>
-                      <CardTitle>Formulaire d'Évaluation</CardTitle>
-                      <CardDescription>
-                        Évaluez votre expérience pour ce rendez-vous
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                          {/* Note globale */}
-                          <FormField
-                            control={form.control}
-                            name="note"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Note globale *</FormLabel>
+              {/* Formulaire */}
+              <div className="lg:col-span-2">
+                <Card className="card-auto">
+                  <CardHeader>
+                    <CardTitle>Formulaire d'Évaluation</CardTitle>
+                    <CardDescription>
+                      Évaluez votre expérience récente avec nos services
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Form {...form}>
+                      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                        {/* Sélection du RDV */}
+                        <FormField
+                          control={form.control}
+                          name="rdvId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Rendez-vous à évaluer *</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl>
-                                  <div className="space-y-2">
-                                    <StarRating
-                                      value={field.value}
-                                      onChange={field.onChange}
-                                      name="note"
-                                    />
-                                    <p className="text-sm text-muted-foreground">
-                                      Cliquez sur les étoiles pour donner votre note
-                                    </p>
-                                  </div>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Sélectionnez le rendez-vous" />
+                                  </SelectTrigger>
                                 </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
+                                <SelectContent>
+                                  {rdvTermines.map((rdv) => (
+                                    <SelectItem key={rdv.id} value={rdv.id}>
+                                      {rdv.date} - {rdv.service} ({rdv.vehicule})
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-                          {/* Évaluations détaillées */}
-                          <div className="space-y-4">
-                            <h3 className="text-lg font-semibold">Évaluations détaillées</h3>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <FormField
-                                control={form.control}
-                                name="serviceQualite"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Qualité du service</FormLabel>
-                                    <FormControl>
-                                      <StarRating
-                                        value={field.value}
-                                        onChange={field.onChange}
-                                        name="serviceQualite"
-                                      />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
+                        {/* Note globale */}
+                        <FormField
+                          control={form.control}
+                          name="note"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Note globale *</FormLabel>
+                              <FormControl>
+                                <div className="space-y-2">
+                                  <StarRating
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    name="note"
+                                  />
+                                  <p className="text-sm text-muted-foreground">
+                                    Cliquez sur les étoiles pour donner votre note
+                                  </p>
+                                </div>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-                              <FormField
-                                control={form.control}
-                                name="accueilEquipe"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Accueil et équipe</FormLabel>
-                                    <FormControl>
-                                      <StarRating
-                                        value={field.value}
-                                        onChange={field.onChange}
-                                        name="accueilEquipe"
-                                      />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-
-                              <FormField
-                                control={form.control}
-                                name="rapportQualitePrix"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Rapport qualité/prix</FormLabel>
-                                    <FormControl>
-                                      <StarRating
-                                        value={field.value}
-                                        onChange={field.onChange}
-                                        name="rapportQualitePrix"
-                                      />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-
-                              <FormField
-                                control={form.control}
-                                name="delaiIntervention"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Délai d'intervention</FormLabel>
-                                    <FormControl>
-                                      <StarRating
-                                        value={field.value}
-                                        onChange={field.onChange}
-                                        name="delaiIntervention"
-                                      />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                            </div>
-                          </div>
-
-                          {/* Recommandation */}
+                        {/* Évaluations détaillées */}
+                        <div className="space-y-4">
+                          <h3 className="text-lg font-semibold">Évaluations détaillées</h3>
+                          
                           <FormField
                             control={form.control}
-                            name="recommande"
+                            name="serviceQualite"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Recommanderiez-vous nos services ? *</FormLabel>
+                                <FormLabel>Qualité du service</FormLabel>
                                 <FormControl>
-                                  <RadioGroup
-                                    onValueChange={field.onChange}
-                                    defaultValue={field.value}
-                                    className="flex space-x-6"
-                                  >
-                                    <div className="flex items-center space-x-2">
-                                      <RadioGroupItem value="oui" id="oui" />
-                                      <Label htmlFor="oui">Oui, certainement</Label>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                      <RadioGroupItem value="non" id="non" />
-                                      <Label htmlFor="non">Non, pas vraiment</Label>
-                                    </div>
-                                  </RadioGroup>
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          {/* Commentaire */}
-                          <FormField
-                            control={form.control}
-                            name="commentaire"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Commentaires *</FormLabel>
-                                <FormControl>
-                                  <Textarea
-                                    placeholder="Partagez votre expérience, vos suggestions d'amélioration ou vos compliments..."
-                                    className="resize-none h-32"
-                                    {...field}
+                                  <StarRating
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    name="serviceQualite"
                                   />
                                 </FormControl>
                                 <FormMessage />
@@ -551,31 +353,132 @@ const Satisfaction = () => {
                             )}
                           />
 
-                          <Button 
-                            type="submit" 
-                            className="w-full btn-primary" 
-                            size="lg"
-                            disabled={isLoading}
-                          >
-                            {isLoading ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Envoi en cours...
-                              </>
-                            ) : (
-                              <>
-                                <Send className="mr-2 h-4 w-4" />
-                                Envoyer mon Évaluation
-                              </>
+                          <FormField
+                            control={form.control}
+                            name="accueilEquipe"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Accueil et équipe</FormLabel>
+                                <FormControl>
+                                  <StarRating
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    name="accueilEquipe"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
                             )}
-                          </Button>
-                        </form>
-                      </Form>
-                    </CardContent>
-                  </Card>
-                </div>
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="rapportQualitePrix"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Rapport qualité/prix</FormLabel>
+                                <FormControl>
+                                  <StarRating
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    name="rapportQualitePrix"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="delaiIntervention"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Délai d'intervention</FormLabel>
+                                <FormControl>
+                                  <StarRating
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    name="delaiIntervention"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        {/* Recommandation */}
+                        <FormField
+                          control={form.control}
+                          name="recommande"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Recommanderiez-vous nos services ? *</FormLabel>
+                              <FormControl>
+                                <RadioGroup
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                  className="flex space-x-6"
+                                >
+                                  <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="oui" id="oui" />
+                                    <Label htmlFor="oui">Oui, certainement</Label>
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="non" id="non" />
+                                    <Label htmlFor="non">Non, pas vraiment</Label>
+                                  </div>
+                                </RadioGroup>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* Commentaire */}
+                        <FormField
+                          control={form.control}
+                          name="commentaire"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Commentaires *</FormLabel>
+                              <FormControl>
+                                <Textarea
+                                  placeholder="Partagez votre expérience, vos suggestions d'amélioration ou vos compliments..."
+                                  className="resize-none h-32"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <Button 
+                          type="submit" 
+                          className="w-full btn-primary" 
+                          size="lg"
+                          disabled={isLoading}
+                        >
+                          {isLoading ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Envoi en cours...
+                            </>
+                          ) : (
+                            <>
+                              <Send className="mr-2 h-4 w-4" />
+                              Envoyer mon Évaluation
+                            </>
+                          )}
+                        </Button>
+                      </form>
+                    </Form>
+                  </CardContent>
+                </Card>
               </div>
-            )}
+            </div>
           </div>
         </div>
       </div>
