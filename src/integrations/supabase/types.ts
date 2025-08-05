@@ -16,88 +16,64 @@ export type Database = {
     Tables: {
       demandes_maintenance: {
         Row: {
-          commentaire: string | null
+          annee: number | null
           created_at: string | null
-          date_preference: string | null
           email_client: string | null
-          id: number
-          nom_client: string | null
-          statut: string | null
+          id: string | null
+          kilometrage: number | null
+          marque: string | null
+          modele: string | null
           telephone_client: string | null
           type_maintenance: string | null
-          user_id: string | null
         }
         Insert: {
-          commentaire?: string | null
+          annee?: number | null
           created_at?: string | null
-          date_preference?: string | null
           email_client?: string | null
-          id?: number
-          nom_client?: string | null
-          statut?: string | null
+          id?: string | null
+          kilometrage?: number | null
+          marque?: string | null
+          modele?: string | null
           telephone_client?: string | null
           type_maintenance?: string | null
-          user_id?: string | null
         }
         Update: {
-          commentaire?: string | null
+          annee?: number | null
           created_at?: string | null
-          date_preference?: string | null
           email_client?: string | null
-          id?: number
-          nom_client?: string | null
-          statut?: string | null
+          id?: string | null
+          kilometrage?: number | null
+          marque?: string | null
+          modele?: string | null
           telephone_client?: string | null
           type_maintenance?: string | null
-          user_id?: string | null
         }
         Relationships: []
       }
       devis: {
         Row: {
-          adresse_client: string | null
           created_at: string | null
           email_client: string | null
-          id: number
+          id: string
           nom_client: string | null
-          numero_devis: string | null
-          prix_unitaire: number | null
           service: string | null
           telephone_client: string | null
-          total_ht: number | null
-          total_ttc: number | null
-          tva: number | null
-          user_id: string | null
         }
         Insert: {
-          adresse_client?: string | null
           created_at?: string | null
           email_client?: string | null
-          id?: number
+          id: string
           nom_client?: string | null
-          numero_devis?: string | null
-          prix_unitaire?: number | null
           service?: string | null
           telephone_client?: string | null
-          total_ht?: number | null
-          total_ttc?: number | null
-          tva?: number | null
-          user_id?: string | null
         }
         Update: {
-          adresse_client?: string | null
           created_at?: string | null
           email_client?: string | null
-          id?: number
+          id?: string
           nom_client?: string | null
-          numero_devis?: string | null
-          prix_unitaire?: number | null
           service?: string | null
           telephone_client?: string | null
-          total_ht?: number | null
-          total_ttc?: number | null
-          tva?: number | null
-          user_id?: string | null
         }
         Relationships: []
       }
@@ -105,40 +81,34 @@ export type Database = {
         Row: {
           commentaire: string | null
           created_at: string | null
-          email_client: string | null
           id: number
-          nom_client: string | null
+          nom: string | null
           note: number | null
-          rdv_id: number | null
           service: string | null
-          user_id: string | null
         }
         Insert: {
           commentaire?: string | null
           created_at?: string | null
-          email_client?: string | null
           id?: number
-          nom_client?: string | null
+          nom?: string | null
           note?: number | null
-          rdv_id?: number | null
           service?: string | null
-          user_id?: string | null
         }
         Update: {
           commentaire?: string | null
           created_at?: string | null
-          email_client?: string | null
           id?: number
-          nom_client?: string | null
+          nom?: string | null
           note?: number | null
-          rdv_id?: number | null
           service?: string | null
-          user_id?: string | null
         }
         Relationships: []
       }
       rendez_vous: {
         Row: {
+          cancelled: boolean | null
+          cancelled_at: string | null
+          cancelled_reason: string | null
           created_at: string | null
           date_rdv: string | null
           email_client: string | null
@@ -152,6 +122,9 @@ export type Database = {
           vehicule: string
         }
         Insert: {
+          cancelled?: boolean | null
+          cancelled_at?: string | null
+          cancelled_reason?: string | null
           created_at?: string | null
           date_rdv?: string | null
           email_client?: string | null
@@ -165,6 +138,9 @@ export type Database = {
           vehicule?: string
         }
         Update: {
+          cancelled?: boolean | null
+          cancelled_at?: string | null
+          cancelled_reason?: string | null
           created_at?: string | null
           date_rdv?: string | null
           email_client?: string | null
