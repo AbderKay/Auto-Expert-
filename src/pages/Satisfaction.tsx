@@ -18,6 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 const formSchema = z.object({
   rdvId: z.string().min(1, 'Veuillez sélectionner un rendez-vous'),
+  nom: z.string().min(2, 'Le nom doit contenir au moins 2 caractères'),
   note: z.number().min(1).max(5, 'Veuillez donner une note entre 1 et 5'),
   commentaire: z.string().min(10, 'Le commentaire doit contenir au moins 10 caractères'),
   recommande: z.enum(['oui', 'non'], {
@@ -43,6 +44,7 @@ const Satisfaction = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       rdvId: '',
+      nom: '',
       note: 0,
       commentaire: '',
       recommande: undefined,
@@ -138,7 +140,8 @@ const Satisfaction = () => {
           .insert({
             note: data.note,
             commentaire: data.commentaire,
-            service: rdvSelectionne?.service || 'Service non spécifié'
+            service: rdvSelectionne?.service || 'Service non spécifié',
+            nom: data.nom
           });
 
         if (dbError) {
@@ -320,6 +323,21 @@ const Satisfaction = () => {
                                   ))}
                                 </SelectContent>
                               </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* Nom du client */}
+                        <FormField
+                          control={form.control}
+                          name="nom"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Votre nom *</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Votre nom et prénom" {...field} />
+                              </FormControl>
                               <FormMessage />
                             </FormItem>
                           )}

@@ -178,8 +178,16 @@ const EspaceClient = () => {
           }
         }
         
+        // Limiter l'historique aux 5 derniers rendez-vous confirmés/terminés
+        // Tri par date et heure décroissante puis limiter à 5
+        passes.sort((a, b) => {
+          const dateA = new Date(`${a.date} ${a.heure || '00:00'}`);
+          const dateB = new Date(`${b.date} ${b.heure || '00:00'}`);
+          return dateB.getTime() - dateA.getTime();
+        });
+        
         setRdvAVenir(aVenir);
-        setRdvPasses(passes);
+        setRdvPasses(passes.slice(0, 5)); // Limiter aux 5 plus récents
       }
     } catch (error) {
       console.error('Erreur lors du chargement des données:', error);

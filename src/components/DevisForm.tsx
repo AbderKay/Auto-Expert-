@@ -17,7 +17,7 @@ const formSchema = z.object({
   email: z.string().email('Email invalide'),
   telephone: z.string().min(10, 'Numéro de téléphone invalide'),
   vehicule: z.string().min(1, 'Veuillez indiquer votre véhicule'),
-  typeService: z.string().min(1, 'Veuillez sélectionner le type de service'),
+  typeService: z.array(z.string()).min(1, 'Veuillez sélectionner au moins un type de service'),
   description: z.string().min(10, 'Veuillez décrire votre demande (minimum 10 caractères)'),
 });
 
@@ -37,7 +37,7 @@ const DevisForm = ({ onSuccess }: DevisFormProps) => {
       email: '',
       telephone: '',
       vehicule: '',
-      typeService: '',
+      typeService: [],
       description: '',
     },
   });
@@ -66,7 +66,7 @@ const DevisForm = ({ onSuccess }: DevisFormProps) => {
         email: data.email,
         telephone: data.telephone,
         vehicule: data.vehicule,
-        typeService: data.typeService,
+        typeService: data.typeService.join(', '),
         description: data.description,
       };
 
@@ -173,21 +173,34 @@ const DevisForm = ({ onSuccess }: DevisFormProps) => {
               name="typeService"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Type de service *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionnez le type de service" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {typesService.map((type) => (
-                        <SelectItem key={type} value={type}>
+                  <FormLabel>Types de service * (sélection multiple)</FormLabel>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 border rounded-lg">
+                    {typesService.map((type) => (
+                      <div key={type} className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id={type}
+                          checked={field.value.includes(type)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              field.onChange([...field.value, type]);
+                            } else {
+                              field.onChange(field.value.filter(t => t !== type));
+                            }
+                          }}
+                          className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                        />
+                        <label htmlFor={type} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                           {type}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                  {field.value.length > 0 && (
+                    <p className="text-sm text-muted-foreground">
+                      Services sélectionnés: {field.value.join(', ')}
+                    </p>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
