@@ -71,17 +71,52 @@ const Rdv = () => {
   ];
 
   const onSubmit = async (data: FormData) => {
+    // Protection anti-double soumission
+    if (isLoading) {
+      return;
+    }
+
     setIsLoading(true);
 
     try {
       const userId = getUserId();
+      
+      const dateFormatee = format(data.date, 'yyyy-MM-dd');
+      
+      // Vérifier si le créneau est déjà réservé
+      const { data: rdvExistants, error: checkError } = await supabase
+        .from('rendez_vous')
+        .select('id, date_rdv, heure_rdv, status')
+        .eq('date_rdv', dateFormatee)
+        .eq('heure_rdv', data.heure)
+        .eq('status', 'confirmed');
+
+      if (checkError) {
+        console.error('Erreur lors de la vérification des créneaux:', checkError);
+        toast({
+          title: '❌ Erreur',
+          description: 'Impossible de vérifier la disponibilité. Veuillez réessayer.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Si un rendez-vous confirmé existe déjà à cette date et heure
+      if (rdvExistants && rdvExistants.length > 0) {
+        toast({
+          title: '📅 Créneau non disponible',
+          description: `Le créneau du ${format(data.date, "PPP", { locale: fr })} à ${data.heure} est déjà réservé. Veuillez choisir une autre date ou heure.`,
+          variant: 'destructive',
+        });
+        return;
+      }
       
       const reservationData = {
         nom: data.nom,
         email: data.email,
         telephone: data.telephone,
         vehicule: data.vehicule,
-        date: format(data.date, 'yyyy-MM-dd'),
+        date: dateFormatee,
         heure: data.heure,
         typeIntervention: data.typeIntervention.join(', '),
         commentaires: data.commentaires || '',
@@ -90,9 +125,18 @@ const Rdv = () => {
       console.log('Envoi de la réservation:', reservationData);
 
       // Envoyer à n8n - le workflow gère entièrement la réponse
-      await envoyerReservation(reservationData, userId);
+      const result = await envoyerReservation(reservationData, userId);
 
-      // n8n gère la réponse - pas de traitement automatique
+      if (result.success) {
+        setIsSubmitted(true);
+        toast({
+          title: '✅ Réservation confirmée !',
+          description: 'Votre rendez-vous a été enregistré avec succès.',
+        });
+      } else {
+        throw new Error('Erreur lors de l\'envoi de la réservation');
+      }
+
       console.log('Réservation envoyée à n8n pour traitement');
     } catch (error) {
       console.error('Erreur lors de la réservation:', error);
