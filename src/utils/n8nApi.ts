@@ -139,6 +139,8 @@ export const envoyerSatisfaction = async (feedbackData: {
   note: number;
   commentaire: string;
   recommande: boolean;
+  nom: string;
+  evaluations?: any;
 }, userId?: string) => {
   return sendToN8n('SATISFACTION', feedbackData, userId);
 };
@@ -169,7 +171,7 @@ export const envoyerDevis = async (devisData: {
   email: string;
   telephone: string;
   vehicule: string;
-  typeService: string;
+  typeService: string | string[];
   description: string;
 }) => {
   return sendToN8n('DEVIS', devisData);

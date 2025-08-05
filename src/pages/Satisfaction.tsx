@@ -119,6 +119,7 @@ const Satisfaction = () => {
         note: data.note,
         commentaire: data.commentaire,
         recommande: data.recommande === 'oui',
+        nom: data.nom,
         evaluations: {
           serviceQualite: data.serviceQualite,
           accueilEquipe: data.accueilEquipe,
