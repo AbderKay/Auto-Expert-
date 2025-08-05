@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { formatDistanceToNow } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -19,13 +21,38 @@ import {
   User
 } from 'lucide-react';
 import luxuryCarBg from '@/assets/luxury-car-bg.jpg';
+import { supabase } from '@/integrations/supabase/client';
 
 const Index = () => {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [testimonials, setTestimonials] = useState<any[]>([]);
+  const [loadingTestimonials, setLoadingTestimonials] = useState(true);
 
   useEffect(() => {
     setIsLoaded(true);
+    loadTestimonials();
   }, []);
+
+  const loadTestimonials = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('feedback_clients')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(4);
+
+      if (error) {
+        console.error('Erreur lors du chargement des avis:', error);
+        return;
+      }
+
+      setTestimonials(data || []);
+    } catch (error) {
+      console.error('Erreur lors du chargement des avis:', error);
+    } finally {
+      setLoadingTestimonials(false);
+    }
+  };
 
   const services = [
     {
@@ -48,26 +75,6 @@ const Index = () => {
     }
   ];
 
-  const testimonials = [
-    {
-      name: "Marie Dubois",
-      rating: 5,
-      comment: "Service exceptionnel ! Mon véhicule a été réparé rapidement et parfaitement.",
-      date: "Il y a 2 jours"
-    },
-    {
-      name: "Pierre Martin",
-      rating: 5,
-      comment: "Équipe professionnelle et transparente. Je recommande vivement AutoExpert.",
-      date: "Il y a 1 semaine"
-    },
-    {
-      name: "Sophie Laurent",
-      rating: 4,
-      comment: "Très satisfaite de la qualité du service et des conseils prodigués.",
-      date: "Il y a 2 semaines"
-    }
-  ];
 
   return (
     <Layout>
@@ -200,27 +207,55 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index} className="card-auto">
-                <CardContent className="pt-6">
-                  <div className="flex mb-4">
-                    {[...Array(5)].map((_, i) => (
-                      <Star 
-                        key={i} 
-                        className={`h-4 w-4 ${i < testimonial.rating ? 'text-primary fill-current' : 'text-muted'}`} 
-                      />
-                    ))}
-                  </div>
-                  <p className="text-muted-foreground mb-4 italic">"{testimonial.comment}"</p>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="font-semibold">{testimonial.name}</span>
-                    <span className="text-muted-foreground">{testimonial.date}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          {loadingTestimonials ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {[...Array(3)].map((_, index) => (
+                <Card key={index} className="card-auto animate-pulse">
+                  <CardContent className="pt-6">
+                    <div className="h-4 bg-muted rounded mb-4"></div>
+                    <div className="h-16 bg-muted rounded mb-4"></div>
+                    <div className="flex justify-between">
+                      <div className="h-4 bg-muted rounded w-24"></div>
+                      <div className="h-4 bg-muted rounded w-20"></div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : testimonials.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
+              {testimonials.map((testimonial, index) => (
+                <Card key={index} className="card-auto">
+                  <CardContent className="pt-6">
+                    <div className="flex mb-4">
+                      {[...Array(5)].map((_, i) => (
+                        <Star 
+                          key={i} 
+                          className={`h-4 w-4 ${i < testimonial.note ? 'text-primary fill-current' : 'text-muted'}`} 
+                        />
+                      ))}
+                    </div>
+                    <p className="text-muted-foreground mb-4 italic">"{testimonial.commentaire}"</p>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="font-semibold">{testimonial.nom}</span>
+                      <span className="text-muted-foreground">
+                        {formatDistanceToNow(new Date(testimonial.created_at), { 
+                          addSuffix: true, 
+                          locale: fr 
+                        })}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-xl text-muted-foreground">
+                Aucun avis disponible pour le moment.
+              </p>
+            </div>
+          )}
         </div>
       </section>
 
