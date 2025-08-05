@@ -73,20 +73,8 @@ const Satisfaction = () => {
           return;
         }
 
-        // Récupérer les feedbacks déjà soumis pour éviter les doublons
-        const { data: feedbacksExistants, error: feedbackError } = await supabase
-          .from('feedback_clients')
-          .select('rdv_id')
-          .eq('user_id', userId);
-
-        if (feedbackError) {
-          console.error('Erreur lors du chargement des feedbacks existants:', feedbackError);
-        }
-
-        const rdvDejaEvalues = feedbacksExistants?.map(f => f.rdv_id) || [];
-
-        // Filtrer les rendez-vous non encore évalués
-        const rdvNonEvalues = rendezVousData?.filter(rdv => !rdvDejaEvalues.includes(rdv.id)) || [];
+        // Afficher tous les rendez-vous confirmés (la vérification des doublons sera gérée côté webhook)
+        const rdvNonEvalues = rendezVousData || [];
 
         const rdvFormates = rdvNonEvalues.map(rdv => ({
           id: rdv.id.toString(),
@@ -106,6 +94,11 @@ const Satisfaction = () => {
   }, []);
 
   const onSubmit = async (data: FormData) => {
+    // Protection anti-double soumission
+    if (isLoading) {
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -130,26 +123,11 @@ const Satisfaction = () => {
 
       console.log('Envoi du feedback:', feedbackData);
 
-      // Envoyer vers n8n
+      // Envoyer uniquement vers n8n - suppression du double insert Supabase
       const result = await envoyerSatisfaction(feedbackData, userId);
       console.log('Réponse du webhook:', result);
 
       if (result.success) {
-        // Sauvegarder en base de données Supabase avec les colonnes existantes uniquement
-        const { error: dbError } = await supabase
-          .from('feedback_clients')
-          .insert({
-            note: data.note,
-            commentaire: data.commentaire,
-            service: rdvSelectionne?.service || 'Service non spécifié',
-            nom: data.nom
-          });
-
-        if (dbError) {
-          console.error('Erreur lors de la sauvegarde en base:', dbError);
-          // Continuer quand même pour afficher le message de succès du webhook
-        }
-
         setIsSubmitted(true);
         toast({
           title: '✅ Évaluation envoyée avec succès !',
