@@ -3,7 +3,7 @@
 
 // URLs des webhooks n8n - À configurer dans votre environnement
 const N8N_WEBHOOKS = {
-  RESERVATION: 'http://localhost:5678/webhook/maintenance-reminder',
+  RESERVATION: 'http://localhost:5678/webhook/reservation',
   MODIFICATION: 'http://localhost:5678/webhook/modification',
   ANNULATION: 'http://localhost:5678/webhook/cancel-reservation',
   SATISFACTION: 'http://localhost:5678/webhook/feedback',
