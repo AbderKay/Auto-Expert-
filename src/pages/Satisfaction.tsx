@@ -73,31 +73,42 @@ const Satisfaction = () => {
           return;
         }
 
-        // Récupérer tous les feedbacks pour identifier les RDV déjà évalués
+        // Récupérer TOUS les feedbacks pour identifier les RDV déjà évalués
         const { data: feedbackData, error: feedbackError } = await supabase
           .from('feedback_clients')
-          .select('service, nom');
+          .select('*');
 
         if (feedbackError) {
           console.error('Erreur lors du chargement des feedbacks:', feedbackError);
+          setRdvTermines([]);
+          return;
         }
 
-        // Créer un ensemble robuste des IDs de rendez-vous déjà évalués
+        console.log('Données feedbacks complètes:', feedbackData);
+        console.log('Rendez-vous confirmés:', rendezVousData);
+
+        // Créer un ensemble des IDs de rendez-vous déjà évalués
         const rdvEvaluesIds = new Set<string>();
         
         if (feedbackData && feedbackData.length > 0) {
           feedbackData.forEach(feedback => {
-            // Méthode 1: Si le service contient l'ID du RDV (format "RDV-{id}" ou similaire)
+            console.log('Analyse feedback:', feedback);
+            
+            // Méthode 1: Extraire l'ID du service si contient un numéro
             if (feedback.service) {
-              const matchService = feedback.service.match(/\b(\d+)\b/); // Cherche n'importe quel nombre
-              if (matchService) {
-                rdvEvaluesIds.add(matchService[1]);
+              const numbers = feedback.service.match(/\d+/g);
+              if (numbers) {
+                numbers.forEach(num => {
+                  rdvEvaluesIds.add(num);
+                  console.log('ID trouvé dans service:', num);
+                });
               }
             }
             
-            // Méthode 2: Si le nom correspond à un ID de RDV (format numérique)
-            if (feedback.nom && /^\d+$/.test(feedback.nom)) {
-              rdvEvaluesIds.add(feedback.nom);
+            // Méthode 2: Si le nom est un ID numérique
+            if (feedback.nom && /^\d+$/.test(feedback.nom.toString())) {
+              rdvEvaluesIds.add(feedback.nom.toString());
+              console.log('ID trouvé dans nom:', feedback.nom);
             }
           });
         }
