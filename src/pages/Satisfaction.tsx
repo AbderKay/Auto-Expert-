@@ -73,8 +73,28 @@ const Satisfaction = () => {
           return;
         }
 
-        // Afficher tous les rendez-vous confirmés (la vérification des doublons sera gérée côté webhook)
-        const rdvNonEvalues = rendezVousData || [];
+        // Récupérer les IDs des rendez-vous déjà évalués
+        const { data: feedbackData, error: feedbackError } = await supabase
+          .from('feedback_clients')
+          .select('service')
+          .eq('nom', userId); // Nous utilisons nom pour identifier l'utilisateur dans les feedbacks
+
+        if (feedbackError) {
+          console.error('Erreur lors du chargement des feedbacks:', feedbackError);
+        }
+
+        const rdvEvaluesIds = new Set(
+          feedbackData?.map(feedback => {
+            // Extraire l'ID du service si c'est au format "RDV-{id}"
+            const match = feedback.service?.match(/RDV-(\d+)/);
+            return match ? match[1] : null;
+          }).filter(Boolean) || []
+        );
+
+        // Filtrer les rendez-vous non évalués
+        const rdvNonEvalues = (rendezVousData || []).filter(rdv => 
+          !rdvEvaluesIds.has(rdv.id.toString())
+        );
 
         const rdvFormates = rdvNonEvalues.map(rdv => ({
           id: rdv.id.toString(),

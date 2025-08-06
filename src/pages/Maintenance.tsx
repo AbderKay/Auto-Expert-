@@ -336,7 +336,11 @@ const Maintenance = () => {
                           Prendre RDV Immédiat
                         </a>
                       </Button>
-                      <Button variant="outline" className="w-full">
+                      <Button 
+                        variant="outline" 
+                        className="w-full"
+                        onClick={() => window.location.href = 'tel:+33123456789'}
+                      >
                         <Phone className="h-4 w-4 mr-2" />
                         Appeler Maintenant
                       </Button>

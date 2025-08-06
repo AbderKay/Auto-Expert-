@@ -122,18 +122,18 @@ const EspaceClient = () => {
       const userId = getUserId();
       
       // Charger les données en parallèle pour améliorer les performances
-      const [rendezVousResponse, devisResponse] = await Promise.all([
-        supabase
-          .from('rendez_vous')
-          .select('*')
-          .eq('user_id', userId)
-          .order('date_rdv', { ascending: true }),
-        supabase
-          .from('devis')
-          .select('*')
-          .eq('user_id', userId)
-          .order('created_at', { ascending: false })
-      ]);
+      // Charger les rendez-vous
+      const rendezVousResponse = await supabase
+        .from('rendez_vous')
+        .select('*')
+        .eq('user_id', userId)
+        .order('date_rdv', { ascending: true });
+
+      // Charger les devis (sans user_id car le champ n'existe pas)
+      const devisResponse = await supabase
+        .from('devis')
+        .select('*')
+        .order('created_at', { ascending: false });
 
       // Gestion des erreurs
       if (rendezVousResponse.error) {
@@ -629,7 +629,7 @@ const EspaceClient = () => {
       const { data: devisData, error: devisError } = await supabase
         .from('devis')
         .select('*')
-        .eq('id', parseInt(devisId))
+        .eq('id', devisId)
         .single();
 
       if (devisError || !devisData) {
@@ -644,7 +644,7 @@ const EspaceClient = () => {
         heure_rdv: '09:00', // Heure par défaut
         service: devisData.service || 'Service non spécifié',
         vehicule: 'Véhicule non spécifié', // Données par défaut
-        montant: parseFloat(String(devisData.total_ttc || 0)),
+        montant: 0, // Montant par défaut car total_ttc n'existe pas dans le schéma
         rdv_id: devisId,
       };
 
