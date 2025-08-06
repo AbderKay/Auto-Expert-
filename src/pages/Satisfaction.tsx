@@ -60,7 +60,7 @@ const Satisfaction = () => {
       try {
         const userId = getUserId();
         
-        // Récupérer les rendez-vous confirmés
+        // Récupérer les rendez-vous confirmés uniquement
         const { data: rendezVousData, error } = await supabase
           .from('rendez_vous')
           .select('*')
@@ -73,25 +73,42 @@ const Satisfaction = () => {
           return;
         }
 
-        // Récupérer les IDs des rendez-vous déjà évalués
+        // Récupérer tous les feedbacks existants pour identifier les RDV déjà évalués
         const { data: feedbackData, error: feedbackError } = await supabase
           .from('feedback_clients')
-          .select('rdv_id')
-          .not('rdv_id', 'is', null);
+          .select('service, nom');
 
         if (feedbackError) {
           console.error('Erreur lors du chargement des feedbacks:', feedbackError);
         }
 
-        // Créer un Set des IDs de rendez-vous déjà évalués
-        const rdvEvaluesIds = new Set(
-          feedbackData?.map(feedback => feedback.rdv_id?.toString()).filter(Boolean) || []
-        );
+        // Créer un ensemble des IDs de rendez-vous déjà évalués
+        const rdvEvaluesIds = new Set();
+        
+        if (feedbackData) {
+          feedbackData.forEach(feedback => {
+            // Méthode 1: Extraire l'ID du service si c'est au format "RDV-{id}"
+            const matchService = feedback.service?.match(/RDV-(\d+)/);
+            if (matchService) {
+              rdvEvaluesIds.add(matchService[1]);
+            }
+            
+            // Méthode 2: Vérifier si le nom correspond à un ID de RDV
+            if (feedback.nom && !isNaN(parseInt(feedback.nom))) {
+              rdvEvaluesIds.add(feedback.nom);
+            }
+          });
+        }
 
-        // Filtrer pour ne garder que les rendez-vous confirmés et pas encore évalués
-        const rdvNonEvalues = (rendezVousData || []).filter(rdv => 
-          !rdvEvaluesIds.has(rdv.id.toString())
-        );
+        console.log('RDV déjà évalués:', Array.from(rdvEvaluesIds));
+
+        // Filtrer les rendez-vous non évalués
+        const rdvNonEvalues = (rendezVousData || []).filter(rdv => {
+          const rdvIdString = rdv.id.toString();
+          const isEvaluated = rdvEvaluesIds.has(rdvIdString);
+          console.log(`RDV ${rdvIdString}: ${isEvaluated ? 'déjà évalué' : 'disponible pour évaluation'}`);
+          return !isEvaluated;
+        });
 
         const rdvFormates = rdvNonEvalues.map(rdv => ({
           id: rdv.id.toString(),
@@ -101,9 +118,8 @@ const Satisfaction = () => {
           vehicule: rdv.vehicule || 'Véhicule non spécifié'
         }));
 
+        console.log(`${rdvFormates.length} rendez-vous disponibles pour évaluation`);
         setRdvTermines(rdvFormates);
-        
-        console.log(`${rdvFormates.length} rendez-vous confirmés et non évalués trouvés sur ${rendezVousData?.length || 0} rendez-vous confirmés au total`);
       } catch (error) {
         console.error('Erreur lors du chargement:', error);
       }
@@ -142,24 +158,8 @@ const Satisfaction = () => {
 
       console.log('Envoi du feedback:', feedbackData);
 
-      // Envoyer vers n8n
+      // Envoyer uniquement vers n8n - suppression du double insert Supabase
       const result = await envoyerSatisfaction(feedbackData, userId);
-      
-      // Ajouter également le feedback dans Supabase avec le rdv_id
-      const { error: insertError } = await supabase
-        .from('feedback_clients')
-        .insert({
-          rdv_id: parseInt(data.rdvId),
-          note: data.note,
-          commentaire: data.commentaire,
-          nom: data.nom,
-          service: rdvSelectionne?.service || 'Service non spécifié'
-        });
-
-      if (insertError) {
-        console.error('Erreur lors de l\'insertion du feedback:', insertError);
-      }
-
       console.log('Réponse du webhook:', result);
 
       if (result.success) {
