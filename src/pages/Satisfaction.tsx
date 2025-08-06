@@ -73,7 +73,7 @@ const Satisfaction = () => {
           return;
         }
 
-        // Récupérer tous les feedbacks existants pour identifier les RDV déjà évalués
+        // Récupérer tous les feedbacks pour identifier les RDV déjà évalués
         const { data: feedbackData, error: feedbackError } = await supabase
           .from('feedback_clients')
           .select('service, nom');
@@ -82,33 +82,42 @@ const Satisfaction = () => {
           console.error('Erreur lors du chargement des feedbacks:', feedbackError);
         }
 
-        // Créer un ensemble des IDs de rendez-vous déjà évalués
-        const rdvEvaluesIds = new Set();
+        // Créer un ensemble robuste des IDs de rendez-vous déjà évalués
+        const rdvEvaluesIds = new Set<string>();
         
-        if (feedbackData) {
+        if (feedbackData && feedbackData.length > 0) {
           feedbackData.forEach(feedback => {
-            // Méthode 1: Extraire l'ID du service si c'est au format "RDV-{id}"
-            const matchService = feedback.service?.match(/RDV-(\d+)/);
-            if (matchService) {
-              rdvEvaluesIds.add(matchService[1]);
+            // Méthode 1: Si le service contient l'ID du RDV (format "RDV-{id}" ou similaire)
+            if (feedback.service) {
+              const matchService = feedback.service.match(/\b(\d+)\b/); // Cherche n'importe quel nombre
+              if (matchService) {
+                rdvEvaluesIds.add(matchService[1]);
+              }
             }
             
-            // Méthode 2: Vérifier si le nom correspond à un ID de RDV
-            if (feedback.nom && !isNaN(parseInt(feedback.nom))) {
+            // Méthode 2: Si le nom correspond à un ID de RDV (format numérique)
+            if (feedback.nom && /^\d+$/.test(feedback.nom)) {
               rdvEvaluesIds.add(feedback.nom);
             }
           });
         }
 
-        console.log('RDV déjà évalués:', Array.from(rdvEvaluesIds));
+        console.log('IDs des RDV déjà évalués:', Array.from(rdvEvaluesIds));
+        console.log('Nombre total de RDV confirmés:', rendezVousData?.length || 0);
 
-        // Filtrer les rendez-vous non évalués
+        // Filtrer pour ne garder que les rendez-vous NON évalués
         const rdvNonEvalues = (rendezVousData || []).filter(rdv => {
           const rdvIdString = rdv.id.toString();
           const isEvaluated = rdvEvaluesIds.has(rdvIdString);
-          console.log(`RDV ${rdvIdString}: ${isEvaluated ? 'déjà évalué' : 'disponible pour évaluation'}`);
-          return !isEvaluated;
+          
+          if (isEvaluated) {
+            console.log(`RDV ${rdvIdString} exclu (déjà évalué)`);
+          }
+          
+          return !isEvaluated; // Garder seulement ceux qui ne sont PAS évalués
         });
+
+        console.log('Nombre de RDV non évalués:', rdvNonEvalues.length);
 
         const rdvFormates = rdvNonEvalues.map(rdv => ({
           id: rdv.id.toString(),
@@ -118,10 +127,10 @@ const Satisfaction = () => {
           vehicule: rdv.vehicule || 'Véhicule non spécifié'
         }));
 
-        console.log(`${rdvFormates.length} rendez-vous disponibles pour évaluation`);
         setRdvTermines(rdvFormates);
       } catch (error) {
         console.error('Erreur lors du chargement:', error);
+        setRdvTermines([]);
       }
     };
 
