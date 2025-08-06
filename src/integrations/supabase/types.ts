@@ -84,6 +84,7 @@ export type Database = {
           id: number
           nom: string | null
           note: number | null
+          rdv_id: number | null
           service: string | null
         }
         Insert: {
@@ -92,6 +93,7 @@ export type Database = {
           id?: number
           nom?: string | null
           note?: number | null
+          rdv_id?: number | null
           service?: string | null
         }
         Update: {
@@ -100,9 +102,18 @@ export type Database = {
           id?: number
           nom?: string | null
           note?: number | null
+          rdv_id?: number | null
           service?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "feedback_clients_rdv_id_fkey"
+            columns: ["rdv_id"]
+            isOneToOne: false
+            referencedRelation: "rendez_vous"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rendez_vous: {
         Row: {

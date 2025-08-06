@@ -60,7 +60,7 @@ const Satisfaction = () => {
       try {
         const userId = getUserId();
         
-        // Récupérer les rendez-vous confirmés uniquement
+        // Récupérer les rendez-vous confirmés
         const { data: rendezVousData, error } = await supabase
           .from('rendez_vous')
           .select('*')
@@ -73,62 +73,25 @@ const Satisfaction = () => {
           return;
         }
 
-        // Récupérer TOUS les feedbacks pour identifier les RDV déjà évalués
+        // Récupérer les IDs des rendez-vous déjà évalués
         const { data: feedbackData, error: feedbackError } = await supabase
           .from('feedback_clients')
-          .select('*');
+          .select('rdv_id')
+          .not('rdv_id', 'is', null);
 
         if (feedbackError) {
           console.error('Erreur lors du chargement des feedbacks:', feedbackError);
-          setRdvTermines([]);
-          return;
         }
 
-        console.log('Données feedbacks complètes:', feedbackData);
-        console.log('Rendez-vous confirmés:', rendezVousData);
+        // Créer un Set des IDs de rendez-vous déjà évalués
+        const rdvEvaluesIds = new Set(
+          feedbackData?.map(feedback => feedback.rdv_id?.toString()).filter(Boolean) || []
+        );
 
-        // Créer un ensemble des IDs de rendez-vous déjà évalués
-        const rdvEvaluesIds = new Set<string>();
-        
-        if (feedbackData && feedbackData.length > 0) {
-          feedbackData.forEach(feedback => {
-            console.log('Analyse feedback:', feedback);
-            
-            // Méthode 1: Extraire l'ID du service si contient un numéro
-            if (feedback.service) {
-              const numbers = feedback.service.match(/\d+/g);
-              if (numbers) {
-                numbers.forEach(num => {
-                  rdvEvaluesIds.add(num);
-                  console.log('ID trouvé dans service:', num);
-                });
-              }
-            }
-            
-            // Méthode 2: Si le nom est un ID numérique
-            if (feedback.nom && /^\d+$/.test(feedback.nom.toString())) {
-              rdvEvaluesIds.add(feedback.nom.toString());
-              console.log('ID trouvé dans nom:', feedback.nom);
-            }
-          });
-        }
-
-        console.log('IDs des RDV déjà évalués:', Array.from(rdvEvaluesIds));
-        console.log('Nombre total de RDV confirmés:', rendezVousData?.length || 0);
-
-        // Filtrer pour ne garder que les rendez-vous NON évalués
-        const rdvNonEvalues = (rendezVousData || []).filter(rdv => {
-          const rdvIdString = rdv.id.toString();
-          const isEvaluated = rdvEvaluesIds.has(rdvIdString);
-          
-          if (isEvaluated) {
-            console.log(`RDV ${rdvIdString} exclu (déjà évalué)`);
-          }
-          
-          return !isEvaluated; // Garder seulement ceux qui ne sont PAS évalués
-        });
-
-        console.log('Nombre de RDV non évalués:', rdvNonEvalues.length);
+        // Filtrer pour ne garder que les rendez-vous confirmés et pas encore évalués
+        const rdvNonEvalues = (rendezVousData || []).filter(rdv => 
+          !rdvEvaluesIds.has(rdv.id.toString())
+        );
 
         const rdvFormates = rdvNonEvalues.map(rdv => ({
           id: rdv.id.toString(),
@@ -139,9 +102,10 @@ const Satisfaction = () => {
         }));
 
         setRdvTermines(rdvFormates);
+        
+        console.log(`${rdvFormates.length} rendez-vous confirmés et non évalués trouvés sur ${rendezVousData?.length || 0} rendez-vous confirmés au total`);
       } catch (error) {
         console.error('Erreur lors du chargement:', error);
-        setRdvTermines([]);
       }
     };
 
@@ -178,8 +142,24 @@ const Satisfaction = () => {
 
       console.log('Envoi du feedback:', feedbackData);
 
-      // Envoyer uniquement vers n8n - suppression du double insert Supabase
+      // Envoyer vers n8n
       const result = await envoyerSatisfaction(feedbackData, userId);
+      
+      // Ajouter également le feedback dans Supabase avec le rdv_id
+      const { error: insertError } = await supabase
+        .from('feedback_clients')
+        .insert({
+          rdv_id: parseInt(data.rdvId),
+          note: data.note,
+          commentaire: data.commentaire,
+          nom: data.nom,
+          service: rdvSelectionne?.service || 'Service non spécifié'
+        });
+
+      if (insertError) {
+        console.error('Erreur lors de l\'insertion du feedback:', insertError);
+      }
+
       console.log('Réponse du webhook:', result);
 
       if (result.success) {
