@@ -3,14 +3,14 @@
 
 // URLs des webhooks n8n - À configurer dans votre environnement
 const N8N_WEBHOOKS = {
-  RESERVATION: 'http://localhost:5678/webhook-test/reservation',
-  MODIFICATION: import.meta.env.VITE_N8N_WEBHOOK_MODIFICATION || 'https://your-n8n-instance.com/webhook/modification',
-  ANNULATION: 'http://localhost:5678/webhook-test/cancel-reservation',
-  SATISFACTION: 'http://localhost:5678/webhook-test/feedback',
-  RAPPEL_MAINTENANCE: 'http://localhost:5678/webhook-test/maintenance-reminder',
-  CONTACT: import.meta.env.VITE_N8N_WEBHOOK_CONTACT || 'https://your-n8n-instance.com/webhook/contact',
-  DEVIS: 'http://localhost:5678/webhook-test/devis',
-  DEVIS_PDF: import.meta.env.VITE_N8N_WEBHOOK_DEVIS_PDF || 'https://your-n8n-instance.com/webhook/devis-pdf',
+  RESERVATION: 'http://localhost:5678/webhook/maintenance-reminder',
+  MODIFICATION: 'http://localhost:5678/webhook/modification',
+  ANNULATION: 'http://localhost:5678/webhook/cancel-reservation',
+  SATISFACTION: 'http://localhost:5678/webhook/feedback',
+  RAPPEL_MAINTENANCE: 'http://localhost:5678/webhook/maintenance-reminder',
+  CONTACT: 'http://localhost:5678/webhook/contact',
+  DEVIS: 'http://localhost:5678/webhook/devis',
+  DEVIS_PDF: 'http://localhost:5678/webhook/devis-pdf',
 };
 
 export interface ApiResponse {
@@ -111,7 +111,7 @@ export const annulerRendezVous = async (rdvId: string, raison?: string, userId?:
       timestamp: new Date().toISOString()
     };
 
-    const response = await fetch('http://localhost:5678/webhook-test/cancel-reservation', {
+    const response = await fetch('http://localhost:5678/webhook/cancel-reservation', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
