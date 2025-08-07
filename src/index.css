@@ -256,8 +256,8 @@ All colors MUST be HSL.
   
   /* BMW-inspired header glass */
   .header-glass {
-    @apply bg-card/8 backdrop-blur-3xl border-b border-border/30;
-    background: var(--gradient-glass);
+    background: hsl(var(--card) / 0.08);
+    @apply backdrop-blur-3xl border-b border-border/30;
     box-shadow: var(--shadow-glass);
   }
   
