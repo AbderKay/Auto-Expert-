@@ -8,19 +8,19 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Base colors - Premium BMW inspired */
-    --background: 0 0% 98%;
-    --foreground: 0 0% 8%;
+    /* Base colors - modern contrast */
+    --background: 0 0% 99%;
+    --foreground: 220 15% 8%;
 
-    /* Card system - Dark premium */
-    --card: 0 0% 7%;
-    --card-foreground: 0 0% 95%;
+    /* Card system */
+    --card: 0 0% 100%;
+    --card-foreground: 220 15% 8%;
 
     /* Popover system */
-    --popover: 0 0% 7%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 15% 8%;
 
-    /* Primary - AutoExpert Red (preserved) */
+    /* Primary - Dynamic Red with gradients */
     --primary: 0 88% 58%;
     --primary-foreground: 0 0% 98%;
     --primary-hover: 0 88% 48%;
@@ -28,29 +28,29 @@ All colors MUST be HSL.
     --primary-light: 0 88% 75%;
     --primary-dark: 0 88% 38%;
 
-    /* Secondary - Deep Charcoal BMW style */
-    --secondary: 210 15% 10%;
-    --secondary-foreground: 0 0% 95%;
-    --secondary-hover: 210 15% 8%;
-    --secondary-light: 210 15% 15%;
+    /* Secondary - Modern Dark with blue tint */
+    --secondary: 220 25% 18%;
+    --secondary-foreground: 0 0% 98%;
+    --secondary-hover: 220 25% 12%;
+    --secondary-light: 220 25% 28%;
 
-    /* Muted tones - Premium grays */
-    --muted: 210 10% 12%;
-    --muted-foreground: 210 5% 65%;
+    /* Muted tones */
+    --muted: 220 15% 96%;
+    --muted-foreground: 220 15% 42%;
 
-    /* Accent - BMW Blue inspiration */
-    --accent: 210 100% 60%;
+    /* Accent - Electric blue for modern contrast */
+    --accent: 217 90% 61%;
     --accent-foreground: 0 0% 98%;
-    --accent-light: 210 100% 70%;
+    --accent-light: 217 90% 71%;
 
     /* Destructive */
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    /* Borders and inputs - Premium dark */
-    --border: 210 10% 20%;
-    --input: 210 10% 15%;
-    --ring: 0 88% 58%;
+    /* Borders and inputs */
+    --border: 0 0% 88%;
+    --input: 0 0% 88%;
+    --ring: 0 84% 55%;
 
     --radius: 0.5rem;
 
@@ -72,44 +72,44 @@ All colors MUST be HSL.
   }
 
   .dark {
-    /* Dark mode - Pure BMW black */
-    --background: 0 0% 3%;
-    --foreground: 0 0% 97%;
+    /* Dark mode - Deep black background */
+    --background: 0 0% 5%;
+    --foreground: 0 0% 95%;
 
-    /* Card system dark - Premium black */
-    --card: 0 0% 5%;
+    /* Card system dark */
+    --card: 0 0% 8%;
     --card-foreground: 0 0% 95%;
 
     /* Popover system dark */
-    --popover: 0 0% 5%;
+    --popover: 0 0% 8%;
     --popover-foreground: 0 0% 95%;
 
-    /* Primary - Enhanced red for dark */
+    /* Primary - Bright Red for dark mode */
     --primary: 0 90% 65%;
-    --primary-foreground: 0 0% 3%;
+    --primary-foreground: 0 0% 5%;
     --primary-hover: 0 90% 55%;
     --primary-glow: 0 90% 75%;
 
-    /* Secondary - BMW dark charcoal */
-    --secondary: 0 0% 8%;
+    /* Secondary - Dark Gray */
+    --secondary: 0 0% 15%;
     --secondary-foreground: 0 0% 95%;
-    --secondary-hover: 0 0% 12%;
+    --secondary-hover: 0 0% 20%;
 
-    /* Muted tones dark - Premium */
-    --muted: 210 10% 8%;
-    --muted-foreground: 210 5% 70%;
+    /* Muted tones dark */
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 65%;
 
-    /* Accent dark - BMW blue */
-    --accent: 210 100% 70%;
-    --accent-foreground: 0 0% 3%;
+    /* Accent dark */
+    --accent: 0 90% 70%;
+    --accent-foreground: 0 0% 5%;
 
     /* Destructive dark */
     --destructive: 0 84% 65%;
-    --destructive-foreground: 0 0% 3%;
+    --destructive-foreground: 0 0% 5%;
 
     /* Borders and inputs dark */
-    --border: 210 10% 15%;
-    --input: 210 10% 10%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
     --ring: 0 90% 65%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
@@ -143,29 +143,25 @@ All colors MUST be HSL.
 /* Agence Automobile Custom Styles */
 @layer base {
   :root {
-    /* BMW-inspired premium gradients */
+    /* Modern gradients with enhanced depth */
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%);
     --gradient-primary-vivid: linear-gradient(135deg, hsl(var(--primary-light)) 0%, hsl(var(--primary)) 50%, hsl(var(--primary-dark)) 100%);
-    --gradient-secondary: linear-gradient(135deg, hsl(210 15% 5%) 0%, hsl(210 15% 12%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(210 20% 3% / 0.95) 0%, hsl(210 15% 8% / 0.85) 50%, hsl(210 25% 2% / 0.98) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(var(--secondary)) 0%, hsl(var(--secondary-hover)) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(220 25% 8% / 0.95) 0%, hsl(220 25% 15% / 0.8) 50%, hsl(220 25% 5% / 0.9) 100%);
     --gradient-accent: linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(var(--accent-light)) 100%);
-    --gradient-glass: linear-gradient(135deg, hsl(210 15% 8% / 0.15) 0%, hsl(210 15% 12% / 0.1) 100%);
     
-    /* BMW-inspired lighting effects */
-    --glow-primary: 0 0 30px hsl(var(--primary) / 0.5), 0 0 60px hsl(var(--primary) / 0.2);
-    --glow-primary-strong: 0 0 40px hsl(var(--primary) / 0.7), 0 0 80px hsl(var(--primary) / 0.3);
-    --glow-accent: 0 0 25px hsl(var(--accent) / 0.4);
-    --glow-blue: 0 0 20px hsl(210 100% 60% / 0.3);
-    --shadow-premium: 0 25px 80px -20px hsl(210 20% 2% / 0.4);
-    --shadow-card: 0 12px 40px -8px hsl(210 20% 3% / 0.2);
-    --shadow-button: 0 6px 25px -4px hsl(var(--primary) / 0.35);
-    --shadow-glass: inset 0 1px 0 0 hsl(0 0% 100% / 0.05), 0 4px 20px -2px hsl(210 20% 2% / 0.3);
+    /* Enhanced lighting and glow effects */
+    --glow-primary: 0 0 25px hsl(var(--primary) / 0.4), 0 0 50px hsl(var(--primary) / 0.2);
+    --glow-primary-strong: 0 0 35px hsl(var(--primary) / 0.6), 0 0 70px hsl(var(--primary) / 0.3);
+    --glow-accent: 0 0 20px hsl(var(--accent) / 0.4);
+    --shadow-modern: 0 20px 60px -15px hsl(220 25% 8% / 0.25);
+    --shadow-card: 0 8px 32px -8px hsl(220 25% 8% / 0.12);
+    --shadow-button: 0 4px 20px -4px hsl(var(--primary) / 0.3);
     
-    /* Luxurious animations */
-    --transition-smooth: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    --transition-fast: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    --transition-luxury: all 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+    /* Smooth animations */
+    --transition-smooth: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    --transition-fast: all 0.2s cubic-bezier(0.23, 1, 0.32, 1);
+    --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   }
 }
 
@@ -233,32 +229,23 @@ All colors MUST be HSL.
     box-shadow: var(--shadow-card);
   }
   
-  /* BMW-inspired premium cards */
+  /* Enhanced card styling */
   .card-auto {
-    @apply bg-card/95 backdrop-blur-2xl border border-border/40 rounded-2xl p-6;
-    background: var(--gradient-glass);
-    box-shadow: var(--shadow-glass);
-    transition: var(--transition-luxury);
+    @apply bg-card/90 backdrop-blur-xl border border-border/30 rounded-2xl p-6;
+    box-shadow: var(--shadow-card);
+    transition: var(--transition-smooth);
   }
   
   .card-auto:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: var(--shadow-premium), var(--glow-blue);
-    @apply border-accent/30;
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-modern);
+    @apply border-border/50;
   }
   
-  /* Premium glassmorphism */
+  /* Glass morphism with modern touch */
   .glass-effect {
-    @apply bg-card/10 backdrop-blur-3xl border border-border/20;
-    background: var(--gradient-glass);
-    box-shadow: var(--shadow-glass);
-  }
-  
-  /* BMW-inspired header glass */
-  .header-glass {
-    background: hsl(var(--card) / 0.08);
-    @apply backdrop-blur-3xl border-b border-border/30;
-    box-shadow: var(--shadow-glass);
+    @apply bg-card/15 backdrop-blur-2xl border border-white/20;
+    box-shadow: inset 0 1px 0 0 hsl(0 0% 100% / 0.1);
   }
   
   /* Animated underline with gradient */
@@ -326,14 +313,6 @@ All colors MUST be HSL.
   
   .animate-float {
     animation: float 6s ease-in-out infinite;
-  }
-  
-  .animate-title-appear {
-    animation: titleAppear 1.2s cubic-bezier(0.19, 1, 0.22, 1) forwards;
-  }
-  
-  .animate-parallax {
-    animation: parallaxMove 20s ease-in-out infinite alternate;
   }
   
   /* Scroll-triggered animations */
@@ -425,34 +404,5 @@ All colors MUST be HSL.
   }
   50% {
     transform: translateY(-10px) rotate(1deg);
-  }
-}
-
-/* BMW-inspired title animation */
-@keyframes titleAppear {
-  0% {
-    opacity: 0;
-    transform: translateY(60px) scale(0.9);
-    filter: blur(10px);
-  }
-  60% {
-    opacity: 0.8;
-    transform: translateY(-10px) scale(1.02);
-    filter: blur(2px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    filter: blur(0);
-  }
-}
-
-/* Parallax scroll effect */
-@keyframes parallaxMove {
-  0% {
-    transform: translateY(0) scale(1);
-  }
-  100% {
-    transform: translateY(-50px) scale(1.05);
   }
 }
