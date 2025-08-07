@@ -5,7 +5,7 @@
 const N8N_WEBHOOKS = {
   RESERVATION: 'http://localhost:5678/webhook/reservation',
   MODIFICATION: import.meta.env.VITE_N8N_WEBHOOK_MODIFICATION || 'https://your-n8n-instance.com/webhook/modification',
-  ANNULATION: 'http://localhost:5678/webhook-test/cancel-reservation',
+  ANNULATION: 'http://localhost:5678/webhook/cancel-reservation',
   SATISFACTION: 'http://localhost:5678/webhook-test/feedback',
   RAPPEL_MAINTENANCE: 'http://localhost:5678/webhook-test/maintenance-reminder',
   CONTACT: import.meta.env.VITE_N8N_WEBHOOK_CONTACT || 'https://your-n8n-instance.com/webhook/contact',
@@ -111,7 +111,7 @@ export const annulerRendezVous = async (rdvId: string, raison?: string, userId?:
       timestamp: new Date().toISOString()
     };
 
-    const response = await fetch('http://localhost:5678/webhook-test/cancel-reservation', {
+    const response = await fetch('http://localhost:5678/webhook/cancel-reservation', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
