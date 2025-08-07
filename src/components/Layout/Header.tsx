@@ -2,11 +2,17 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Car, Menu, Phone, Calendar, User, Star, Wrench } from 'lucide-react';
+import { Car, Menu, Phone, Calendar, User, Star, Wrench, LogOut } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
 
   const navItems = [
     { href: '/', label: 'Accueil', icon: Car },
@@ -54,7 +60,7 @@ const Header = () => {
             })}
           </nav>
 
-          {/* Contact Button */}
+          {/* Contact Button and Auth */}
           <div className="hidden md:flex items-center space-x-4">
             <Button asChild variant="outline" size="sm" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
               <a href="tel:0123456789" className="flex items-center space-x-2">
@@ -62,6 +68,24 @@ const Header = () => {
                 <span>01 23 45 67 89</span>
               </a>
             </Button>
+            {user ? (
+              <Button
+                onClick={handleSignOut}
+                variant="outline"
+                size="sm"
+                className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Déconnexion
+              </Button>
+            ) : (
+              <Button asChild variant="default" size="sm">
+                <Link to="/auth" className="flex items-center space-x-2">
+                  <User className="h-4 w-4" />
+                  <span>Connexion</span>
+                </Link>
+              </Button>
+            )}
           </div>
 
           {/* Mobile Menu */}
@@ -110,6 +134,24 @@ const Header = () => {
                     <span>01 23 45 67 89</span>
                   </a>
                 </Button>
+
+                {user ? (
+                  <Button
+                    onClick={handleSignOut}
+                    variant="outline"
+                    className="w-full border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Déconnexion
+                  </Button>
+                ) : (
+                  <Button asChild variant="default" className="w-full">
+                    <Link to="/auth" className="flex items-center space-x-2">
+                      <User className="h-4 w-4" />
+                      <span>Connexion</span>
+                    </Link>
+                  </Button>
+                )}
               </div>
             </SheetContent>
           </Sheet>

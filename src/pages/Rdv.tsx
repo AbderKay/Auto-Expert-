@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -14,12 +15,13 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { toast } from '@/hooks/use-toast';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import Layout from '@/components/Layout/Layout';
-import { Calendar as CalendarIcon, Clock, User, Car, Wrench, Loader2 } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, User, Car, Wrench, Loader2, LogIn } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { envoyerReservation, getUserId } from '@/utils/n8nApi';
+import { envoyerReservation } from '@/utils/n8nApi';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 const formSchema = z.object({
   nom: z.string().min(2, 'Le nom doit contenir au moins 2 caractères'),
@@ -39,6 +41,52 @@ type FormData = z.infer<typeof formSchema>;
 const Rdv = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  // Rediriger vers la page d'authentification si l'utilisateur n'est pas connecté
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/auth');
+    }
+  }, [user, loading, navigate]);
+
+  // Afficher un spinner pendant le chargement de l'authentification
+  if (loading) {
+    return (
+      <Layout>
+        <div className="min-h-screen flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </Layout>
+    );
+  }
+
+  // Si l'utilisateur n'est pas connecté, afficher un message de redirection
+  if (!user) {
+    return (
+      <Layout>
+        <div className="min-h-screen flex items-center justify-center bg-background py-20">
+          <Card className="max-w-lg mx-auto text-center">
+            <CardHeader>
+              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <LogIn className="h-8 w-8 text-primary" />
+              </div>
+              <CardTitle className="text-2xl">Connexion requise</CardTitle>
+              <CardDescription>
+                Vous devez être connecté pour prendre un rendez-vous
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild className="w-full">
+                <a href="/auth">Se connecter</a>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </Layout>
+    );
+  }
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -79,7 +127,7 @@ const Rdv = () => {
     setIsLoading(true);
 
     try {
-      const userId = getUserId();
+      const userId = user.id; // Utiliser l'ID de l'utilisateur authentifié
       
       const dateFormatee = format(data.date, 'yyyy-MM-dd');
       
