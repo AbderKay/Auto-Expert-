@@ -25,64 +25,64 @@ const Header = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-card/90 backdrop-blur-md border-b border-border/50">
-      <div className="container mx-auto px-4 py-4">
+    <header className="fixed top-0 left-0 right-0 z-50 header-glass">
+      <div className="container mx-auto px-6 py-5">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2 group">
-            <div className="p-2 bg-primary rounded-lg glow-red group-hover:glow-red-strong transition-all duration-300">
-              <Car className="h-6 w-6 text-primary-foreground" />
+          <Link to="/" className="flex items-center space-x-3 group">
+            <div className="p-3 bg-primary rounded-xl glow-primary group-hover:glow-primary-strong transition-all duration-500 group-hover:scale-105">
+              <Car className="h-7 w-7 text-primary-foreground" />
             </div>
-            <div>
-              <h1 className="text-xl font-bold text-foreground">AutoExpert</h1>
-              <p className="text-xs text-muted-foreground">Agence Automobile</p>
+            <div className="hidden sm:block">
+              <h1 className="text-2xl font-bold text-foreground group-hover:text-primary transition-colors duration-300">AutoExpert</h1>
+              <p className="text-sm text-muted-foreground">Agence Automobile</p>
             </div>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-6">
+          <nav className="hidden lg:flex items-center space-x-8">
             {navItems.map((item) => {
               const Icon = item.icon;
               return (
                 <Link
                   key={item.href}
                   to={item.href}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-300 link-animated ${
+                  className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-500 link-animated group ${
                     isActive(item.href)
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-foreground hover:text-primary'
+                      ? 'bg-primary text-primary-foreground glow-primary'
+                      : 'text-foreground hover:text-primary hover:bg-primary/5 hover:scale-105'
                   }`}
                 >
-                  <Icon className="h-4 w-4" />
-                  <span>{item.label}</span>
+                  <Icon className="h-5 w-5 group-hover:rotate-6 transition-transform duration-300" />
+                  <span className="font-medium">{item.label}</span>
                 </Link>
               );
             })}
           </nav>
 
           {/* Contact Button and Auth */}
-          <div className="hidden md:flex items-center space-x-4">
-            <Button asChild variant="outline" size="sm" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
-              <a href="tel:0123456789" className="flex items-center space-x-2">
-                <Phone className="h-4 w-4" />
-                <span>01 23 45 67 89</span>
+          <div className="hidden md:flex items-center space-x-5">
+            <Button asChild variant="outline" size="lg" className="border-accent/50 text-accent hover:bg-accent hover:text-accent-foreground hover:scale-105 hover:glow-accent transition-all duration-500 px-6 py-3">
+              <a href="tel:0123456789" className="flex items-center space-x-3">
+                <Phone className="h-5 w-5" />
+                <span className="font-medium">01 23 45 67 89</span>
               </a>
             </Button>
             {user ? (
               <Button
                 onClick={handleSignOut}
                 variant="outline"
-                size="sm"
-                className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+                size="lg"
+                className="border-destructive/50 text-destructive hover:bg-destructive hover:text-destructive-foreground hover:scale-105 transition-all duration-500 px-6 py-3"
               >
-                <LogOut className="h-4 w-4 mr-2" />
-                Déconnexion
+                <LogOut className="h-5 w-5 mr-3" />
+                <span className="font-medium">Déconnexion</span>
               </Button>
             ) : (
-              <Button asChild variant="default" size="sm">
-                <Link to="/auth" className="flex items-center space-x-2">
-                  <User className="h-4 w-4" />
-                  <span>Connexion</span>
+              <Button asChild variant="default" size="lg" className="btn-primary px-6 py-3 hover:scale-105">
+                <Link to="/auth" className="flex items-center space-x-3">
+                  <User className="h-5 w-5" />
+                  <span className="font-medium">Connexion</span>
                 </Link>
               </Button>
             )}
@@ -91,8 +91,8 @@ const Header = () => {
           {/* Mobile Menu */}
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="sm" className="md:hidden">
-                <Menu className="h-5 w-5" />
+              <Button variant="ghost" size="lg" className="lg:hidden p-3 hover:bg-primary/10 hover:scale-110 transition-all duration-300">
+                <Menu className="h-6 w-6 text-foreground" />
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-72">

@@ -20,7 +20,7 @@ import {
   Award,
   User
 } from 'lucide-react';
-import modernAutomotiveHero from '@/assets/modern-automotive-hero.jpg';
+import bmwTechInterior from '@/assets/bmw-tech-interior.jpg';
 import { supabase } from '@/integrations/supabase/client';
 
 const Index = () => {
@@ -80,19 +80,20 @@ const Index = () => {
     <Layout>
       {/* Hero Section */}
       <section 
-        className="relative min-h-[90vh] flex items-center justify-center bg-cover bg-center bg-no-repeat"
+        className="relative min-h-[95vh] flex items-center justify-center bg-cover bg-center bg-no-repeat overflow-hidden parallax-section"
         style={{
-          backgroundImage: `linear-gradient(135deg, rgba(34, 39, 46, 0.95), rgba(34, 39, 46, 0.8)), url(${modernAutomotiveHero})`
+          backgroundImage: `var(--gradient-hero), url(${bmwTechInterior})`
         }}
       >
-        <div className="container mx-auto px-4 text-center text-white">
-          <div className={`space-y-6 ${isLoaded ? 'animate-fade-in' : 'opacity-0'}`}>
-            <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/5 opacity-40"></div>
+        <div className="container mx-auto px-4 text-center text-white relative z-10">
+          <div className={`space-y-8 ${isLoaded ? 'animate-fade-in' : 'opacity-0'}`}>
+            <Badge className="mb-6 bg-primary/25 text-primary border-primary/40 backdrop-blur-sm px-6 py-2 text-lg font-medium glow-primary">
               Agence Automobile d'Excellence
             </Badge>
-            <h1 className="text-4xl md:text-6xl font-bold leading-tight">
+            <h1 className="text-5xl md:text-7xl font-bold leading-tight animate-slide-up" style={{animationDelay: '0.3s'}}>
               Votre Partenaire
-              <span className="block text-primary">Automobile de Confiance</span>
+              <span className="block text-primary drop-shadow-2xl animate-glow">Automobile de Confiance</span>
             </h1>
             <p className="text-xl md:text-2xl text-gray-200 max-w-3xl mx-auto leading-relaxed">
               Expertise professionnelle, service de qualité et technologies de pointe 
