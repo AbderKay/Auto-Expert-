@@ -20,7 +20,7 @@ import {
   Award,
   User
 } from 'lucide-react';
-import luxuryCarBg from '@/assets/luxury-car-bg.jpg';
+import modernAutomotiveHero from '@/assets/modern-automotive-hero.jpg';
 import { supabase } from '@/integrations/supabase/client';
 
 const Index = () => {
@@ -82,7 +82,7 @@ const Index = () => {
       <section 
         className="relative min-h-[90vh] flex items-center justify-center bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: `linear-gradient(135deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.4)), url(${luxuryCarBg})`
+          backgroundImage: `linear-gradient(135deg, rgba(34, 39, 46, 0.95), rgba(34, 39, 46, 0.8)), url(${modernAutomotiveHero})`
         }}
       >
         <div className="container mx-auto px-4 text-center text-white">
@@ -102,7 +102,7 @@ const Index = () => {
               <Button 
                 asChild 
                 size="lg" 
-                className="btn-primary text-lg px-8 py-4 glow-red hover:glow-red-strong"
+                className="btn-primary text-lg px-8 py-4 glow-primary hover:glow-primary-strong interactive-hover"
               >
                 <Link to="/rdv">
                   <Calendar className="mr-2 h-5 w-5" />
@@ -113,7 +113,7 @@ const Index = () => {
                 asChild
                 variant="outline" 
                 size="lg" 
-                className="text-lg px-8 py-4 border-white text-white hover:bg-white hover:text-black"
+                className="text-lg px-8 py-4 border-white/30 text-white bg-white/10 backdrop-blur-sm hover:bg-white hover:text-black interactive-hover"
               >
                 <Link to="/auth">
                   <User className="mr-2 h-5 w-5" />
@@ -123,7 +123,7 @@ const Index = () => {
               <Button 
                 variant="outline" 
                 size="lg" 
-                className="text-lg px-8 py-4 border-white text-white hover:bg-white hover:text-black"
+                className="text-lg px-8 py-4 border-accent/50 text-accent bg-accent/10 backdrop-blur-sm hover:bg-accent hover:text-accent-foreground interactive-hover"
                 onClick={() => window.location.href = 'tel:+33123456789'}
               >
                 <Phone className="mr-2 h-5 w-5" />
@@ -148,7 +148,7 @@ const Index = () => {
             {services.map((service, index) => {
               const Icon = service.icon;
               return (
-                <Card key={index} className="card-auto hover:shadow-xl transition-all duration-300 group">
+                <Card key={index} className="card-auto hover:shadow-xl transition-all duration-300 group interactive-hover animate-fade-in-up" style={{animationDelay: `${index * 0.1}s`}}>
                   <CardHeader className="text-center">
                     <div className="mx-auto p-4 bg-primary/10 rounded-full w-fit group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                       <Icon className="h-8 w-8 text-primary group-hover:text-primary-foreground" />
@@ -174,23 +174,23 @@ const Index = () => {
       </section>
 
       {/* Statistiques */}
-      <section className="py-16 bg-secondary">
+      <section className="py-16 bg-secondary parallax-section">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
-            <div className="space-y-2">
-              <div className="text-4xl font-bold text-primary">15+</div>
+            <div className="space-y-2 animate-scale-in interactive-hover" style={{animationDelay: '0.1s'}}>
+              <div className="text-4xl font-bold text-primary animate-glow">15+</div>
               <div className="text-secondary-foreground">Années d'Expérience</div>
             </div>
-            <div className="space-y-2">
-              <div className="text-4xl font-bold text-primary">5000+</div>
+            <div className="space-y-2 animate-scale-in interactive-hover" style={{animationDelay: '0.2s'}}>
+              <div className="text-4xl font-bold text-primary animate-glow">5000+</div>
               <div className="text-secondary-foreground">Véhicules Réparés</div>
             </div>
-            <div className="space-y-2">
-              <div className="text-4xl font-bold text-primary">98%</div>
+            <div className="space-y-2 animate-scale-in interactive-hover" style={{animationDelay: '0.3s'}}>
+              <div className="text-4xl font-bold text-primary animate-glow">98%</div>
               <div className="text-secondary-foreground">Clients Satisfaits</div>
             </div>
-            <div className="space-y-2">
-              <div className="text-4xl font-bold text-primary">24h</div>
+            <div className="space-y-2 animate-scale-in interactive-hover" style={{animationDelay: '0.4s'}}>
+              <div className="text-4xl font-bold text-primary animate-glow">24h</div>
               <div className="text-secondary-foreground">Délai Moyen</div>
             </div>
           </div>
@@ -225,7 +225,7 @@ const Index = () => {
           ) : testimonials.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
               {testimonials.map((testimonial, index) => (
-                <Card key={index} className="card-auto">
+                <Card key={index} className="card-auto interactive-hover animate-fade-in-up" style={{animationDelay: `${index * 0.1}s`}}>
                   <CardContent className="pt-6">
                     <div className="flex mb-4">
                       {[...Array(5)].map((_, i) => (

@@ -2,42 +2,46 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Agence Automobile Design System - Rouge/Noir/Gris/Blanc
+/* Agence Automobile Design System - Modern & Dynamic
 All colors MUST be HSL.
 */
 
 @layer base {
   :root {
-    /* Base colors - elegant black and white */
-    --background: 0 0% 98%;
-    --foreground: 0 0% 10%;
+    /* Base colors - modern contrast */
+    --background: 0 0% 99%;
+    --foreground: 220 15% 8%;
 
     /* Card system */
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 10%;
+    --card-foreground: 220 15% 8%;
 
     /* Popover system */
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10%;
+    --popover-foreground: 220 15% 8%;
 
-    /* Primary - Dynamic Red */
-    --primary: 0 84% 55%;
+    /* Primary - Dynamic Red with gradients */
+    --primary: 0 88% 58%;
     --primary-foreground: 0 0% 98%;
-    --primary-hover: 0 84% 45%;
-    --primary-glow: 0 84% 65%;
+    --primary-hover: 0 88% 48%;
+    --primary-glow: 0 88% 68%;
+    --primary-light: 0 88% 75%;
+    --primary-dark: 0 88% 38%;
 
-    /* Secondary - Elegant Gray */
-    --secondary: 0 0% 20%;
+    /* Secondary - Modern Dark with blue tint */
+    --secondary: 220 25% 18%;
     --secondary-foreground: 0 0% 98%;
-    --secondary-hover: 0 0% 15%;
+    --secondary-hover: 220 25% 12%;
+    --secondary-light: 220 25% 28%;
 
     /* Muted tones */
-    --muted: 0 0% 94%;
-    --muted-foreground: 0 0% 45%;
+    --muted: 220 15% 96%;
+    --muted-foreground: 220 15% 42%;
 
-    /* Accent - Bright Red for highlights */
-    --accent: 0 90% 60%;
+    /* Accent - Electric blue for modern contrast */
+    --accent: 217 90% 61%;
     --accent-foreground: 0 0% 98%;
+    --accent-light: 217 90% 71%;
 
     /* Destructive */
     --destructive: 0 84% 60%;
@@ -125,114 +129,222 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.025em;
   }
 }
 
 /* Agence Automobile Custom Styles */
 @layer base {
   :root {
-    /* Custom gradients for automotive theme */
-    --gradient-red: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
-    --gradient-dark: linear-gradient(135deg, hsl(var(--secondary)), hsl(var(--secondary-hover)));
-    --gradient-hero: linear-gradient(135deg, hsl(0 0% 5% / 0.9), hsl(0 0% 15% / 0.7));
+    /* Modern gradients with enhanced depth */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%);
+    --gradient-primary-vivid: linear-gradient(135deg, hsl(var(--primary-light)) 0%, hsl(var(--primary)) 50%, hsl(var(--primary-dark)) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(var(--secondary)) 0%, hsl(var(--secondary-hover)) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(220 25% 8% / 0.95) 0%, hsl(220 25% 15% / 0.8) 50%, hsl(220 25% 5% / 0.9) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(var(--accent-light)) 100%);
     
-    /* Dynamic lighting effects */
-    --glow-red: 0 0 20px hsl(var(--primary) / 0.5);
-    --glow-red-strong: 0 0 30px hsl(var(--primary) / 0.8);
-    --shadow-elegant: 0 10px 40px -10px hsl(0 0% 0% / 0.3);
-    --shadow-card: 0 4px 20px -4px hsl(0 0% 0% / 0.1);
+    /* Enhanced lighting and glow effects */
+    --glow-primary: 0 0 25px hsl(var(--primary) / 0.4), 0 0 50px hsl(var(--primary) / 0.2);
+    --glow-primary-strong: 0 0 35px hsl(var(--primary) / 0.6), 0 0 70px hsl(var(--primary) / 0.3);
+    --glow-accent: 0 0 20px hsl(var(--accent) / 0.4);
+    --shadow-modern: 0 20px 60px -15px hsl(220 25% 8% / 0.25);
+    --shadow-card: 0 8px 32px -8px hsl(220 25% 8% / 0.12);
+    --shadow-button: 0 4px 20px -4px hsl(var(--primary) / 0.3);
     
-    /* Automotive animations */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-fast: all 0.15s ease-out;
+    /* Smooth animations */
+    --transition-smooth: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    --transition-fast: all 0.2s cubic-bezier(0.23, 1, 0.32, 1);
+    --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   }
 }
 
 @layer components {
-  /* Hero background with car overlay */
+  /* Modern hero background with parallax effect */
   .hero-background {
-    @apply relative min-h-screen bg-cover bg-center bg-no-repeat;
-    background-image: linear-gradient(135deg, hsl(0 0% 5% / 0.85), hsl(0 0% 15% / 0.6)), url('/src/assets/luxury-car-bg.jpg');
+    @apply relative min-h-screen bg-cover bg-center bg-no-repeat overflow-hidden;
+    background-image: var(--gradient-hero), url('/src/assets/modern-automotive-hero.jpg');
+    background-attachment: fixed;
   }
   
-  /* Dynamic lighting effects */
-  .glow-red {
-    box-shadow: var(--glow-red);
+  .hero-background::before {
+    content: '';
+    @apply absolute inset-0 opacity-20;
+    background: radial-gradient(circle at 30% 70%, hsl(var(--primary) / 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 70% 30%, hsl(var(--accent) / 0.2) 0%, transparent 50%);
+    animation: float 6s ease-in-out infinite;
   }
   
-  .glow-red-strong {
-    box-shadow: var(--glow-red-strong);
+  /* Enhanced lighting effects */
+  .glow-primary {
+    box-shadow: var(--glow-primary);
   }
   
-  /* Automotive button variants */
+  .glow-primary-strong {
+    box-shadow: var(--glow-primary-strong);
+  }
+  
+  .glow-accent {
+    box-shadow: var(--glow-accent);
+  }
+  
+  /* Modern button variants with enhanced interactions */
   .btn-primary {
-    @apply bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all duration-300;
-    box-shadow: var(--shadow-elegant);
+    @apply relative overflow-hidden;
+    background: var(--gradient-primary);
+    @apply text-primary-foreground font-medium shadow-lg;
+    box-shadow: var(--shadow-button);
+    transition: var(--transition-smooth);
+  }
+  
+  .btn-primary::before {
+    content: '';
+    @apply absolute inset-0 opacity-0;
+    background: var(--gradient-primary-vivid);
+    transition: var(--transition-fast);
   }
   
   .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--glow-red-strong), var(--shadow-elegant);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: var(--glow-primary-strong), var(--shadow-modern);
+  }
+  
+  .btn-primary:hover::before {
+    @apply opacity-100;
   }
   
   .btn-secondary {
     @apply bg-secondary text-secondary-foreground hover:bg-secondary/90 border border-border;
+    transition: var(--transition-smooth);
   }
   
-  /* Card with automotive styling */
-  .card-auto {
-    @apply bg-card/80 backdrop-blur-sm border border-border/50 rounded-lg p-6;
+  .btn-secondary:hover {
+    transform: translateY(-2px);
     box-shadow: var(--shadow-card);
   }
   
-  /* Glass morphism effect */
-  .glass-effect {
-    @apply bg-card/20 backdrop-blur-md border border-white/10;
+  /* Enhanced card styling */
+  .card-auto {
+    @apply bg-card/90 backdrop-blur-xl border border-border/30 rounded-2xl p-6;
+    box-shadow: var(--shadow-card);
+    transition: var(--transition-smooth);
   }
   
-  /* Animated underline for links */
+  .card-auto:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-modern);
+    @apply border-border/50;
+  }
+  
+  /* Glass morphism with modern touch */
+  .glass-effect {
+    @apply bg-card/15 backdrop-blur-2xl border border-white/20;
+    box-shadow: inset 0 1px 0 0 hsl(0 0% 100% / 0.1);
+  }
+  
+  /* Animated underline with gradient */
   .link-animated {
     @apply relative inline-block;
+    transition: var(--transition-fast);
   }
   
   .link-animated::after {
-    @apply absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300;
     content: '';
+    @apply absolute bottom-0 left-0 w-0 h-0.5 transition-all duration-500;
+    background: var(--gradient-primary);
+    border-radius: 2px;
+  }
+  
+  .link-animated:hover {
+    color: hsl(var(--primary));
   }
   
   .link-animated:hover::after {
     @apply w-full;
   }
+  
+  /* Interactive elements with hover effects */
+  .interactive-hover {
+    transition: var(--transition-smooth);
+  }
+  
+  .interactive-hover:hover {
+    transform: translateY(-2px) scale(1.02);
+  }
+  
+  /* Parallax sections */
+  .parallax-section {
+    transform: translateZ(0);
+    will-change: transform;
+  }
 }
 
 @layer utilities {
-  /* Custom animations */
+  /* Enhanced animations */
   .animate-glow {
-    animation: glow 2s ease-in-out infinite alternate;
+    animation: glow 3s ease-in-out infinite alternate;
   }
   
   .animate-slide-up {
-    animation: slideUp 0.6s ease-out;
+    animation: slideUp 0.8s cubic-bezier(0.23, 1, 0.32, 1);
   }
   
   .animate-fade-in {
-    animation: fadeIn 0.8s ease-out;
+    animation: fadeIn 1s ease-out;
+  }
+  
+  .animate-fade-in-up {
+    animation: fadeInUp 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  
+  .animate-scale-in {
+    animation: scaleIn 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  
+  .animate-bounce-in {
+    animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+  
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  /* Scroll-triggered animations */
+  .scroll-animate {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: var(--transition-smooth);
+  }
+  
+  .scroll-animate.in-view {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
+/* Enhanced keyframes */
 @keyframes glow {
-  from {
-    box-shadow: var(--glow-red);
+  0% {
+    box-shadow: var(--glow-primary);
   }
-  to {
-    box-shadow: var(--glow-red-strong);
+  50% {
+    box-shadow: var(--glow-primary-strong);
+  }
+  100% {
+    box-shadow: var(--glow-primary);
   }
 }
 
 @keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(40px);
   }
   to {
     opacity: 1;
@@ -246,5 +358,51 @@ All colors MUST be HSL.
   }
   to {
     opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(1deg);
   }
 }
