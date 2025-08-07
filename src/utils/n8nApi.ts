@@ -9,7 +9,7 @@ const N8N_WEBHOOKS = {
   SATISFACTION: 'http://localhost:5678/webhook-test/feedback',
   RAPPEL_MAINTENANCE: 'http://localhost:5678/webhook-test/maintenance-reminder',
   CONTACT: import.meta.env.VITE_N8N_WEBHOOK_CONTACT || 'https://your-n8n-instance.com/webhook/contact',
-  DEVIS: 'http://localhost:5678/webhook-test/devis',
+  DEVIS: 'http://localhost:5678/webhook/devis',
   DEVIS_PDF: import.meta.env.VITE_N8N_WEBHOOK_DEVIS_PDF || 'https://your-n8n-instance.com/webhook/devis-pdf',
 };
 
