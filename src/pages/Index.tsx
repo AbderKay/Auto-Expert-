@@ -235,7 +235,7 @@ const Index = () => {
                         />
                       ))}
                     </div>
-                    <p className="text-muted-foreground mb-4 italic">"{testimonial.commentaire}"</p>
+                    <p className="text-muted-foreground mb-4 italic break-words overflow-hidden">"{testimonial.commentaire}"</p>
                     <div className="flex justify-between items-center text-sm">
                       <span className="font-semibold">{testimonial.nom}</span>
                       <span className="text-muted-foreground">
