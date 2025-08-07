@@ -3,7 +3,7 @@
 
 // URLs des webhooks n8n - À configurer dans votre environnement
 const N8N_WEBHOOKS = {
-  RESERVATION: 'http://localhost:5678/webhook-test/reservation',
+  RESERVATION: 'http://localhost:5678/webhook/reservation',
   MODIFICATION: import.meta.env.VITE_N8N_WEBHOOK_MODIFICATION || 'https://your-n8n-instance.com/webhook/modification',
   ANNULATION: 'http://localhost:5678/webhook-test/cancel-reservation',
   SATISFACTION: 'http://localhost:5678/webhook-test/feedback',
