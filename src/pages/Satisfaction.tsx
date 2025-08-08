@@ -58,13 +58,15 @@ const Satisfaction = () => {
   useEffect(() => {
     const chargerRdvConfirmes = async () => {
       try {
-        const userId = getUserId();
+        // Utiliser l'utilisateur authentifié Supabase pour la cohérence
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
         
         // Récupérer les rendez-vous confirmés uniquement
         const { data: rendezVousData, error } = await supabase
           .from('rendez_vous')
           .select('*')
-          .eq('user_id', userId)
+          .eq('user_id', user.id)
           .eq('status', 'confirmed')
           .order('date_rdv', { ascending: false });
 
