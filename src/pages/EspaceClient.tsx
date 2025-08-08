@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -162,21 +163,20 @@ const EspaceClient = () => {
           telephone_client: rdv.telephone_client
         }));
 
-        // Séparer les RDV selon leur statut
-        const aVenir = [];
-        const passes = [];
-        
-        for (const rdv of rdvFormates) {
-          if (rdv.statut === 'confirmed') {
-            // Les RDV confirmés vont dans l'historique
-            passes.push(rdv);
-          } else if (rdv.statut === 'terminé' || rdv.statut === 'completed') {
-            passes.push(rdv);
-          } else {
-            // Les RDV pending restent dans "à venir"
-            aVenir.push(rdv);
-          }
+      // Séparer les RDV selon leur statut
+      const aVenir = [];
+      const passes = [];
+      
+      for (const rdv of rdvFormates) {
+        if (rdv.statut === 'confirmed' || rdv.statut === 'terminé' || rdv.statut === 'completed') {
+          // Les RDV confirmés et terminés vont dans l'historique
+          passes.push(rdv);
+        } else if (rdv.statut === 'pending') {
+          // Les RDV pending restent dans "à venir"
+          aVenir.push(rdv);
         }
+        // Ignorer les RDV annulés
+      }
         
         // Limiter l'historique aux 5 derniers rendez-vous confirmés/terminés
         // Tri par date et heure décroissante puis limiter à 5
@@ -402,9 +402,20 @@ const EspaceClient = () => {
       defaultValues: {
         date: selectedRdv ? new Date(selectedRdv.date) : new Date(),
         heure: selectedRdv?.heure || '',
-        typeIntervention: [], // Réinitialiser vide pour permettre une nouvelle sélection
+        typeIntervention: [], // Toujours vide pour permettre une nouvelle sélection propre
       },
     });
+
+    // Réinitialiser le formulaire quand selectedRdv change
+    React.useEffect(() => {
+      if (selectedRdv) {
+        form.reset({
+          date: new Date(selectedRdv.date),
+          heure: selectedRdv.heure,
+          typeIntervention: [], // Réinitialiser les types d'intervention
+        });
+      }
+    }, [selectedRdv, form]);
 
     const handleSubmit = (data: ModificationFormData) => {
       handleSaveModification(data);
@@ -557,59 +568,31 @@ const EspaceClient = () => {
     );
   };
 
-  const handleAnnulerRdv = async (rdvId: string) => {
-    setIsLoading(true);
-    try {
-      const userId = getUserId();
-      const result = await annulerRendezVous(rdvId, 'Annulation par le client', userId);
-      
-      if (result.success) {
-        // Mettre à jour la liste localement
-        setRdvAVenir(prev => prev.filter(rdv => rdv.id !== rdvId));
-        
-        toast({
-          title: '✅ Rendez-vous annulé',
-          description: 'Votre rendez-vous a été annulé avec succès.',
-        });
-      } else {
-        throw new Error(result.message);
-      }
-    } catch (error) {
-      toast({
-        title: '❌ Erreur',
-        description: 'Impossible d\'annuler le rendez-vous. Veuillez réessayer.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleConfirmerRdv = async (rdvId: string) => {
-    setIsLoading(true);
     try {
+      // Mettre à jour le statut en 'confirmed' dans Supabase
       const { error } = await supabase
         .from('rendez_vous')
         .update({ status: 'confirmed' })
         .eq('id', parseInt(rdvId));
 
-      if (error) throw error;
-
-      // Mise à jour locale : déplacer de "à venir" vers "historique"
-      const rdvToMove = rdvAVenir.find(rdv => rdv.id === rdvId);
-      if (rdvToMove) {
-        const confirmedRdv = { ...rdvToMove, statut: 'confirmed' };
-        
-        // Ajouter dans l'historique
-        setRdvPasses(prev => [confirmedRdv, ...prev]);
-        
-        // Supprimer de "à venir"
-        setRdvAVenir(prev => prev.filter(rdv => rdv.id !== rdvId));
+      if (error) {
+        throw error;
       }
-      
+
+      // Mettre à jour l'état local
+      const rdvToConfirm = rdvAVenir.find(rdv => rdv.id === rdvId);
+      if (rdvToConfirm) {
+        const confirmedRdv = { ...rdvToConfirm, statut: 'confirmed' };
+        
+        // Supprimer de "À venir" et ajouter à "Historique"
+        setRdvAVenir(prev => prev.filter(rdv => rdv.id !== rdvId));
+        setRdvPasses(prev => [confirmedRdv, ...prev].slice(0, 5)); // Limiter aux 5 plus récents
+      }
+
       toast({
         title: '✅ Rendez-vous confirmé',
-        description: 'Le rendez-vous a été confirmé et déplacé dans l\'historique.',
+        description: 'Votre rendez-vous a été confirmé et déplacé vers l\'historique.',
       });
     } catch (error) {
       console.error('Erreur lors de la confirmation:', error);
@@ -618,10 +601,42 @@ const EspaceClient = () => {
         description: 'Impossible de confirmer le rendez-vous. Veuillez réessayer.',
         variant: 'destructive',
       });
-    } finally {
-      setIsLoading(false);
     }
   };
+
+  const handleAnnulerRdv = async (rdvId: string) => {
+    try {
+      // Mettre à jour le statut en 'annulé' dans Supabase
+      const { error } = await supabase
+        .from('rendez_vous')
+        .update({ status: 'annulé' })
+        .eq('id', parseInt(rdvId));
+
+      if (error) {
+        throw error;
+      }
+
+      // Supprimer de l'interface locale
+      setRdvAVenir(prev => prev.filter(rdv => rdv.id !== rdvId));
+      setRdvPasses(prev => prev.filter(rdv => rdv.id !== rdvId));
+      
+      // Optionnel : envoyer une notification via n8n
+      await annulerRendezVous(rdvId, 'Annulation par le client');
+
+      toast({
+        title: '✅ Rendez-vous annulé',
+        description: 'Votre rendez-vous a été annulé avec succès.',
+      });
+    } catch (error) {
+      console.error('Erreur lors de l\'annulation:', error);
+      toast({
+        title: '❌ Erreur',
+        description: 'Impossible d\'annuler le rendez-vous. Veuillez réessayer.',
+        variant: 'destructive',
+      });
+    }
+  };
+
 
   const downloadDevis = async (devisId: string) => {
     try {
