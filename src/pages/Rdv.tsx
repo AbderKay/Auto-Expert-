@@ -127,7 +127,7 @@ const Rdv = () => {
     setIsLoading(true);
 
     try {
-      const userId = user.id; // Utiliser l'ID de l'utilisateur authentifié
+      const userId = user.id; // Utiliser l'ID de l'utilisateur authentifié Supabase
       
       const dateFormatee = format(data.date, 'yyyy-MM-dd');
       

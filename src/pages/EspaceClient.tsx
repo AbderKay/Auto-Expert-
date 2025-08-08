@@ -118,16 +118,22 @@ const EspaceClient = () => {
     "Autre"
   ];
 
-  const chargerRendezVous = async () => {
+  const chargerRendezVous = async (userId?: string) => {
     try {
-      const userId = getUserId();
+      // Utiliser l'ID de l'utilisateur passé en paramètre ou celui de l'état
+      const currentUserId = userId || user?.id;
+      
+      if (!currentUserId) {
+        console.log('Pas d\'utilisateur connecté');
+        return;
+      }
       
       // Charger les données en parallèle pour améliorer les performances
-      // Charger les rendez-vous
+      // Charger les rendez-vous avec l'ID utilisateur Supabase
       const rendezVousResponse = await supabase
         .from('rendez_vous')
         .select('*')
-        .eq('user_id', userId)
+        .eq('user_id', currentUserId)
         .order('date_rdv', { ascending: true });
 
       // Charger les devis (sans user_id car le champ n'existe pas)
@@ -213,14 +219,19 @@ const EspaceClient = () => {
       setSession(session);
       setUser(session.user);
       
-      // Charger les données initiales
-      await chargerRendezVous();
+      // Charger les données initiales APRÈS avoir défini l'utilisateur
+      setTimeout(async () => {
+        await chargerRendezVous(session.user.id);
+        if (!mounted) return;
+        setIsLoading(false);
+      }, 100);
       
       if (!mounted) return;
-      setIsLoading(false);
 
       // Configurer l'écoute en temps réel UNIQUEMENT après avoir chargé les données
-      const userId = getUserId();
+      const userId = session.user?.id;
+      if (!userId) return;
+      
       realtimeChannel = supabase
         .channel(`user_${userId}_updates`)
         .on(
@@ -233,7 +244,7 @@ const EspaceClient = () => {
           },
           (payload) => {
             console.log('Nouveau rendez-vous détecté:', payload);
-            chargerRendezVous();
+            chargerRendezVous(userId);
             
             toast({
               title: '✅ Nouveau rendez-vous',
@@ -251,7 +262,7 @@ const EspaceClient = () => {
           },
           (payload) => {
             console.log('Rendez-vous modifié:', payload);
-            chargerRendezVous();
+            chargerRendezVous(userId);
           }
         )
         .on(
@@ -264,7 +275,7 @@ const EspaceClient = () => {
           },
           (payload) => {
             console.log('Nouveau devis détecté:', payload);
-            chargerRendezVous();
+            chargerRendezVous(userId);
             
             toast({
               title: '📄 Nouveau devis disponible',
@@ -287,8 +298,11 @@ const EspaceClient = () => {
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         setSession(session);
         setUser(session.user);
-        await chargerRendezVous();
-        setIsLoading(false);
+        // Attendre que user soit défini avant de charger les données
+        setTimeout(async () => {
+          await chargerRendezVous(session.user.id);
+          setIsLoading(false);
+        }, 100);
       }
     });
 
@@ -873,47 +887,49 @@ const EspaceClient = () => {
                                       Modifier
                                     </Button>
                                     
-                                    <Dialog>
-                                      <DialogTrigger asChild>
-                                        <Button variant="outline" size="sm" className="bg-red-50 text-red-700 hover:bg-red-100 border-red-300">
-                                          <Trash2 className="h-4 w-4 mr-1" />
-                                          Annuler
-                                        </Button>
-                                      </DialogTrigger>
-                                      <DialogContent className="max-w-md">
-                                        <DialogHeader>
-                                          <DialogTitle className="flex items-center gap-2">
-                                            <AlertCircle className="h-5 w-5 text-red-600" />
-                                            Annuler le rendez-vous
-                                          </DialogTitle>
-                                          <DialogDescription>
-                                            Êtes-vous sûr de vouloir annuler ce rendez-vous ? Cette action est irréversible et vous devrez reprendre un nouveau rendez-vous si nécessaire.
-                                          </DialogDescription>
-                                        </DialogHeader>
-                                        <div className="bg-red-50 p-4 rounded-lg mt-4">
-                                          <div className="flex items-start gap-3">
-                                            <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
-                                            <div className="text-sm text-red-800">
-                                              <p className="font-medium">Rendez-vous à annuler :</p>
-                                              <p>{format(new Date(rdv.date), 'EEEE d MMMM yyyy', { locale: fr })} à {rdv.heure}</p>
-                                              <p>{rdv.typeIntervention}</p>
-                                            </div>
-                                          </div>
-                                        </div>
-                                        <div className="flex space-x-3 mt-6">
-                                          <Button variant="outline" className="flex-1 border-gray-300">
-                                            Non, garder
-                                          </Button>
-                                          <Button 
-                                            onClick={() => handleAnnulerRdv(rdv.id)}
-                                            disabled={isLoading}
-                                            className="flex-1 bg-red-600 hover:bg-red-700 text-white"
-                                          >
-                                            {isLoading ? "Annulation..." : "Oui, annuler"}
-                                          </Button>
-                                        </div>
-                                      </DialogContent>
-                                    </Dialog>
+                                     <Dialog>
+                                       <DialogTrigger asChild>
+                                         <Button variant="outline" size="sm" className="bg-red-50 text-red-700 hover:bg-red-100 border-red-300">
+                                           <Trash2 className="h-4 w-4 mr-1" />
+                                           Annuler
+                                         </Button>
+                                       </DialogTrigger>
+                                       <DialogContent className="max-w-md">
+                                         <DialogHeader>
+                                           <DialogTitle className="flex items-center gap-2">
+                                             <AlertCircle className="h-5 w-5 text-red-600" />
+                                             Annuler le rendez-vous
+                                           </DialogTitle>
+                                           <DialogDescription>
+                                             Êtes-vous sûr de vouloir annuler ce rendez-vous ? Cette action est irréversible et vous devrez reprendre un nouveau rendez-vous si nécessaire.
+                                           </DialogDescription>
+                                         </DialogHeader>
+                                         <div className="bg-red-50 p-4 rounded-lg mt-4">
+                                           <div className="flex items-start gap-3">
+                                             <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+                                             <div className="text-sm text-red-800">
+                                               <p className="font-medium">Rendez-vous à annuler :</p>
+                                               <p>{format(new Date(rdv.date), 'EEEE d MMMM yyyy', { locale: fr })} à {rdv.heure}</p>
+                                               <p>{rdv.typeIntervention}</p>
+                                             </div>
+                                           </div>
+                                         </div>
+                                         <div className="flex space-x-3 mt-6">
+                                           <DialogTrigger asChild>
+                                             <Button variant="outline" className="flex-1 border-gray-300">
+                                               Non, garder
+                                             </Button>
+                                           </DialogTrigger>
+                                           <Button 
+                                             onClick={() => handleAnnulerRdv(rdv.id)}
+                                             disabled={isLoading}
+                                             className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                                           >
+                                             {isLoading ? "Annulation..." : "Oui, annuler"}
+                                           </Button>
+                                         </div>
+                                       </DialogContent>
+                                     </Dialog>
                                   </>
                                 )}
                               </div>
