@@ -11,6 +11,7 @@ const N8N_WEBHOOKS = {
   CONTACT: import.meta.env.VITE_N8N_WEBHOOK_CONTACT || 'https://your-n8n-instance.com/webhook/contact',
   DEVIS: 'http://localhost:5678/webhook/devis',
   DEVIS_PDF: import.meta.env.VITE_N8N_WEBHOOK_DEVIS_PDF || 'https://your-n8n-instance.com/webhook/devis-pdf',
+  CHATBOT: 'http://localhost:5678/webhook-test/chatbot',
 };
 
 export interface ApiResponse {
@@ -175,6 +176,10 @@ export const envoyerDevis = async (devisData: {
   description: string;
 }) => {
   return sendToN8n('DEVIS', devisData);
+};
+
+export const envoyerMessageChatbot = async (message: string, userId?: string) => {
+  return sendToN8n('CHATBOT', { message }, userId);
 };
 
 // Fonction pour générer et télécharger un devis PDF via n8n
