@@ -37,7 +37,7 @@ const ChatbotWidget = () => {
 
   const sendMessageToWebhook = async (message: string): Promise<string> => {
     try {
-      const response = await fetch('http://localhost:5678/webhook-test/chatbot', {
+      const response = await fetch('http://localhost:5678/webhook-test/assistant-autoexpert', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
