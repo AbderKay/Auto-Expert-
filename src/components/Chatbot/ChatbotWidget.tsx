@@ -6,6 +6,28 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageCircle, X, Send, Bot, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+const renderMessageWithLinks = (content: string) => {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = content.split(urlRegex);
+  
+  return parts.map((part, index) => {
+    if (urlRegex.test(part)) {
+      return (
+        <a
+          key={index}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary hover:text-primary/80 underline font-medium"
+        >
+          {part}
+        </a>
+      );
+    }
+    return part;
+  });
+};
+
 interface Message {
   id: string;
   content: string;
@@ -194,7 +216,7 @@ const ChatbotWidget = () => {
                           : "bg-primary text-primary-foreground rounded-tr-sm"
                       )}
                     >
-                      {message.content}
+                      {renderMessageWithLinks(message.content)}
                     </div>
                     {!message.isBot && (
                       <div className="p-1.5 bg-primary/10 rounded-full">
