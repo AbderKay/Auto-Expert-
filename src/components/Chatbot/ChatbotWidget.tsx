@@ -35,29 +35,68 @@ const ChatbotWidget = () => {
     scrollToBottom();
   }, [messages]);
 
+  const analyzeMessageAndRespond = (message: string): string => {
+    const msg = message.toLowerCase().trim();
+    
+    // Mots-clés pour chaque catégorie
+    const keywords = {
+      rdv: ['rendez-vous', 'rdv', 'réservation', 'réserver', 'prendre', 'créneau', 'révision', 'contrôle technique', 'vidange'],
+      auth: ['connexion', 'connecter', 'compte', 'espace', 'personnel', 'login', 'identifiant', 'mot de passe'],
+      satisfaction: ['satisfaction', 'avis', 'note', 'évaluation', 'feedback', 'commentaire', 'service'],
+      maintenance: ['maintenance', 'réparation', 'réparer', 'panne', 'problème', 'entretien', 'garage', 'mécanique'],
+      home: ['accueil', 'services', 'proposez', 'offrez', 'que faites-vous', 'présentation', 'bonjour', 'salut', 'hello']
+    };
+
+    // Vérifier les correspondances
+    for (const [category, categoryKeywords] of Object.entries(keywords)) {
+      if (categoryKeywords.some(keyword => msg.includes(keyword))) {
+        switch (category) {
+          case 'rdv':
+            return 'Parfait ! Vous pouvez réserver votre créneau ici : https://preview--automoto-hub-38.lovable.app/rdv';
+          case 'auth':
+            return 'Vous pouvez vous connecter à votre espace personnel ici : https://preview--automoto-hub-38.lovable.app/auth';
+          case 'satisfaction':
+            return 'Votre avis nous intéresse ! Partagez votre expérience ici : https://preview--automoto-hub-38.lovable.app/satisfaction';
+          case 'maintenance':
+            return 'Pour vos besoins de maintenance et réparation, consultez nos services ici : https://preview--automoto-hub-38.lovable.app/maintenance';
+          case 'home':
+            return 'Bienvenue sur AutoMoto Hub ! Nous proposons des services complets pour votre véhicule, découvrez-les ici : https://preview--automoto-hub-38.lovable.app/';
+        }
+      }
+    }
+
+    // Réponse générale si aucune catégorie spécifique n'est détectée
+    return 'Je suis là pour vous aider ! Pouvez-vous me préciser votre besoin ? Je peux vous orienter vers nos différents services : réservation, maintenance, espace client, ou satisfaction.';
+  };
+
   const sendMessageToWebhook = async (message: string): Promise<string> => {
     try {
-      const response = await fetch('http://localhost:5678/webhook-test/chatbot', {
+      // Analyser le message et fournir une réponse intelligente
+      const intelligentResponse = analyzeMessageAndRespond(message);
+      
+      // Envoyer aussi au webhook n8n pour logging/traitement
+      const response = await fetch('http://localhost:5678/webhook-test/assistant-autoexpert', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           message,
+          response: intelligentResponse,
           timestamp: new Date().toISOString(),
           source: 'autoexpert-website'
         }),
       });
 
       if (!response.ok) {
-        throw new Error(`Erreur HTTP: ${response.status}`);
+        console.warn(`Webhook warning: ${response.status}`);
       }
 
-      const result = await response.text();
-      return result || 'Merci pour votre message. Notre équipe vous répondra bientôt.';
+      return intelligentResponse;
     } catch (error) {
       console.error('Erreur envoi message chatbot:', error);
-      return 'Désolé, je rencontre des difficultés techniques. Veuillez réessayer plus tard.';
+      // Fallback vers l'analyse locale même si le webhook échoue
+      return analyzeMessageAndRespond(message);
     }
   };
 
