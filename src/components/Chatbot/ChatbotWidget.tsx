@@ -62,6 +62,7 @@ const ChatbotWidget = () => {
     
     // Mots-clés pour chaque catégorie
     const keywords = {
+      remerciements: ['merci', 'merci beaucoup', 'je vous remercie', 'parfait', 'super', 'excellent', 'génial', 'ok merci', 'très bien'],
       rdv: ['rendez-vous', 'rdv', 'réservation', 'réserver', 'prendre', 'créneau', 'révision', 'contrôle technique', 'vidange'],
       auth: ['connexion', 'connecter', 'compte', 'espace', 'personnel', 'login', 'identifiant', 'mot de passe'],
       satisfaction: ['satisfaction', 'avis', 'note', 'évaluation', 'feedback', 'commentaire', 'service'],
@@ -77,6 +78,8 @@ const ChatbotWidget = () => {
     for (const [category, categoryKeywords] of Object.entries(keywords)) {
       if (categoryKeywords.some(keyword => msg.includes(keyword))) {
         switch (category) {
+          case 'remerciements':
+            return 'Nous sommes toujours à votre disposition ! Bienvenue chez AutoExpert.';
           case 'rdv':
             return 'Parfait ! Vous pouvez réserver votre créneau ici : https://preview--automoto-hub-38.lovable.app/rdv';
           case 'auth':
