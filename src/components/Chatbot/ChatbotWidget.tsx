@@ -66,7 +66,11 @@ const ChatbotWidget = () => {
       auth: ['connexion', 'connecter', 'compte', 'espace', 'personnel', 'login', 'identifiant', 'mot de passe'],
       satisfaction: ['satisfaction', 'avis', 'note', 'évaluation', 'feedback', 'commentaire', 'service'],
       maintenance: ['maintenance', 'réparation', 'réparer', 'panne', 'problème', 'entretien', 'garage', 'mécanique'],
-      home: ['accueil', 'services', 'proposez', 'offrez', 'que faites-vous', 'présentation', 'bonjour', 'salut', 'hello']
+      home: ['accueil', 'services', 'proposez', 'offrez', 'que faites-vous', 'présentation', 'bonjour', 'salut', 'hello'],
+      devis: ['devis', 'prix', 'tarif', 'coût', 'facture', 'estimation'],
+      historique: ['historique', 'histoire', 'précédent', 'ancien', 'passé', 'dossier'],
+      contact: ['contact', 'contacter', 'téléphone', 'appeler', 'numéro'],
+      disponibilite: ['disponibilité', 'disponible', 'horaire', 'heure', 'ouvert', 'fermé', 'ouverture']
     };
 
     // Vérifier les correspondances
@@ -83,6 +87,14 @@ const ChatbotWidget = () => {
             return 'Pour vos besoins de maintenance et réparation, consultez nos services ici : https://preview--automoto-hub-38.lovable.app/maintenance';
           case 'home':
             return 'Bienvenue sur AutoMoto Hub ! Nous proposons des services complets pour votre véhicule, découvrez-les ici : https://preview--automoto-hub-38.lovable.app/';
+          case 'devis':
+            return 'Vous pouvez demander votre devis en vous connectant à ce lien : https://preview--automoto-hub-38.lovable.app/auth';
+          case 'historique':
+            return 'Vous pouvez consulter votre historique en vous connectant à ce lien : https://preview--automoto-hub-38.lovable.app/auth';
+          case 'contact':
+            return 'Vous pouvez nous contacter au : 01 23 45 67 89';
+          case 'disponibilite':
+            return 'Nos horaires d\'ouverture : Lun-Ven 8h-18h';
         }
       }
     }
