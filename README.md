@@ -1,4 +1,4 @@
-
+# 🚗 AutoExpert — Digital Platform for Automotive Agencies
 
 ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
@@ -9,7 +9,7 @@
 
 A modern, responsive web platform that digitizes the day-to-day operations of an automotive agency — online appointment booking, a personal client area, satisfaction surveys, maintenance reminders, AI-assisted quotes, and a built-in assistant. Business processes (emails, confirmations, database writes, alerts) are fully automated end-to-end with **n8n** workflows, backed by a **Supabase** database.
 
-> Built during a three-month application internship at **AHDIGITAL** (Technopark Agadir), July 2025. See the [Internship Report]() section below.
+> Built during a one-month application internship at **AHDIGITAL** (Technopark Agadir), July 2025. See the [Internship Report](#-internship-report) section below.
 
 ---
 
@@ -30,26 +30,30 @@ A modern, responsive web platform that digitizes the day-to-day operations of an
 > Add your images to a `docs/screenshots/` folder in the repo so they display below.
 
 ### Home page & assistant
-![Home page and chatbot]![Uploading Screenshot 2025-08-21 125304.png…]
+<img  src="https://github.com/user-attachments/assets/d004e0ea-e176-4301-ae6d-517e6b1f2f1b" width="700" alt="Home page and chatbot" />
+<img src="https://github.com/user-attachments/assets/f1001e80-46d6-4ec2-806c-7f583949ef60" width="700" alt="Home page and chatbot" />
 
 *The landing page introduces the agency and its services. The built-in assistant (bottom-right) answers common questions and points visitors to the right page.*
 
 ### Client area — sign in & sign up
-![Login and registration](docs/screenshots/auth.png)
+<img src="docs/screenshots/auth.png" width="700" alt="Login and registration" />
+
 *Clients create an account or log in to access their personal space, secured with Supabase authentication.*
 
 ### Client area — appointments & history
-![Client dashboard](docs/screenshots/client-space.png)
+<img src="docs/screenshots/client-space.png" width="700" alt="Client dashboard" />
+
 *From "Mon Espace", clients view their upcoming appointments, browse their intervention history, and confirm, modify, or cancel a booking.*
 
 ### Requests — quote, satisfaction & maintenance
-![Request forms](docs/screenshots/requests.png)
+<img src="docs/screenshots/requests.png" width="700" alt="Request forms" />
+
 *Dedicated forms let clients request a personalized quote, rate a service, or ask for a maintenance reminder. Each submission is sent to an n8n workflow.*
 
 ### Automated response & admin database
-![Admin database](docs/screenshots/admin-database.png)
-*Every submission is confirmed to the client and stored automatically in the Supabase tables, giving the agency a live view of bookings, feedback, quotes, and maintenance requests.*
+<img src="docs/screenshots/admin-database.png" width="700" alt="Admin database" />
 
+*Every submission is confirmed to the client and stored automatically in the Supabase tables, giving the agency a live view of bookings, feedback, quotes, and maintenance requests.*
 ---
 
 ## 🛠️ Tech Stack
@@ -205,7 +209,7 @@ This project was developed as part of a one-month application internship and doc
 | --- | --- |
 | **Title** | Development of an innovative web solution for automotive agencies: digitalization, automation, AI chatbot and its database (AutoExpert) |
 | **Company** | AHDIGITAL — Technopark Agadir |
-| **Period** | July 1 – July 31, 2025 |
+| **Period** | July 1 – oct1, 2025 |
 
 The report covers the context and objectives, system analysis and design (UML, architecture), the technical implementation (React, Tailwind, n8n workflows, Supabase), results and performance metrics, challenges encountered, and future perspectives.
 
