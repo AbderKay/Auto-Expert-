@@ -1,4 +1,4 @@
-<img width="2471" height="1293" alt="Screenshot 2025-08-21 125304" src="https://github.com/user-attachments/assets/f66af782-6862-4978-9aa1-292f8dafc6eb" /># 🚗 AutoExpert — Digital Platform for Automotive Agencies
+
 
 ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
