@@ -81,19 +81,19 @@ const ChatbotWidget = () => {
           case 'remerciements':
             return 'Nous sommes toujours à votre disposition ! Bienvenue chez AutoExpert.';
           case 'rdv':
-            return 'Parfait ! Vous pouvez réserver votre créneau ici : https://preview--automoto-hub-38.lovable.app/rdv';
+            return 'Parfait ! Vous pouvez réserver votre créneau ici : /rdv';
           case 'auth':
-            return 'Vous pouvez vous connecter à votre espace personnel ici : https://preview--automoto-hub-38.lovable.app/auth';
+            return 'Vous pouvez vous connecter à votre espace personnel ici : /auth';
           case 'satisfaction':
-            return 'Votre avis nous intéresse ! Partagez votre expérience ici : https://preview--automoto-hub-38.lovable.app/satisfaction';
+            return 'Votre avis nous intéresse ! Partagez votre expérience ici : /satisfaction';
           case 'maintenance':
-            return 'Pour vos besoins de maintenance et réparation, consultez nos services ici : https://preview--automoto-hub-38.lovable.app/maintenance';
+            return 'Pour vos besoins de maintenance et réparation, consultez nos services ici : /maintenance';
           case 'home':
-            return 'Bienvenue sur AutoMoto Hub ! Nous proposons des services complets pour votre véhicule, découvrez-les ici : https://preview--automoto-hub-38.lovable.app/';
+            return 'Bienvenue sur AutoMoto Hub ! Nous proposons des services complets pour votre véhicule, découvrez-les ici : /';
           case 'devis':
-            return 'Vous pouvez demander votre devis en vous connectant à ce lien : https://preview--automoto-hub-38.lovable.app/auth';
+            return 'Vous pouvez demander votre devis en vous connectant à ce lien : /auth';
           case 'historique':
-            return 'Vous pouvez consulter votre historique en vous connectant à ce lien : https://preview--automoto-hub-38.lovable.app/auth';
+            return 'Vous pouvez consulter votre historique en vous connectant à ce lien : /auth';
           case 'contact':
             return 'Vous pouvez nous contacter au : 01 23 45 67 89';
           case 'disponibilite':
