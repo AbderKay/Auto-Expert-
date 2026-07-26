@@ -30,21 +30,21 @@ A modern, responsive web platform that digitizes the day-to-day operations of an
 > Add your images to a `docs/screenshots/` folder in the repo so they display below.
 
 ### Home page & assistant
-<img  src="https://github.com/user-attachments/assets/d004e0ea-e176-4301-ae6d-517e6b1f2f1b" width="700" alt="Home page and chatbot" />
-<img src="https://github.com/user-attachments/assets/f1001e80-46d6-4ec2-806c-7f583949ef60" width="400" alt="Home page and chatbot" />
+<img  src="https://github.com/user-attachments/assets/d004e0ea-e176-4301-ae6d-517e6b1f2f1b" width="180" height="175" alt="Home page and chatbot" />
+<img src="https://github.com/user-attachments/assets/f1001e80-46d6-4ec2-806c-7f583949ef60" width="180" height="175" alt="Home page and chatbot" />
 
 *The landing page introduces the agency and its services. The built-in assistant (bottom-right) answers common questions and points visitors to the right page.*
 
 ### Client area — sign in & sign up
-<img width="2478" height="1291" alt="login and registration " src="https://github.com/user-attachments/assets/1b7c63d3-dc41-40ec-8160-8f864193b872" />
-<img width="2484" height="1300" alt="Screenshot 2025-08-21 131656" src="https://github.com/user-attachments/assets/398bcddb-e914-4a4f-80ec-fa1ce4f689a7" />
+<img width="180" height="175" alt="login and registration " src="https://github.com/user-attachments/assets/1b7c63d3-dc41-40ec-8160-8f864193b872" />
+<img width="180" height="175"  alt="Screenshot 2025-08-21 131656" src="https://github.com/user-attachments/assets/398bcddb-e914-4a4f-80ec-fa1ce4f689a7" />
 
 
 *Clients create an account or log in to access their personal space, secured with Supabase authentication.*
 
 ### Client area — appointments & history
-<img width="1403" height="1249" src="https://github.com/user-attachments/assets/393811b4-6938-4abb-a712-5dd31bfdbd1c" />
-<img width="1416" height="1196" src="https://github.com/user-attachments/assets/9aff1a8f-37d1-4af6-aa43-bc850e48d8d8" />
+<img width="180" height="175" src="https://github.com/user-attachments/assets/393811b4-6938-4abb-a712-5dd31bfdbd1c" />
+<img width="180" height="175" src="https://github.com/user-attachments/assets/9aff1a8f-37d1-4af6-aa43-bc850e48d8d8" />
 
 
 
@@ -54,11 +54,11 @@ A modern, responsive web platform that digitizes the day-to-day operations of an
 
 
 
-<img width="1566" height="1315" src="https://github.com/user-attachments/assets/cbf63cf2-b403-4172-b9e2-96c5e855803d" />
+<img width="180" height="175" src="https://github.com/user-attachments/assets/cbf63cf2-b403-4172-b9e2-96c5e855803d" />
 
-<img width="1406" height="1310"  src="https://github.com/user-attachments/assets/9dc4ad38-3501-4d00-a36f-a44b9a4a2ace" />
+<img width="180" height="175"  src="https://github.com/user-attachments/assets/9dc4ad38-3501-4d00-a36f-a44b9a4a2ace" />
 
-<img width="1430" height="1313" src="https://github.com/user-attachments/assets/e40747e9-eb72-4e5a-aa93-8fd439e29e5c" />
+<img width="180" height="175" src="https://github.com/user-attachments/assets/e40747e9-eb72-4e5a-aa93-8fd439e29e5c" />
 
 
 
@@ -227,7 +227,7 @@ This project was developed as part of a one-month application internship and doc
 
 
 
-📎 **[Read the full internship report (PDF)]()**
+📎 **[Read the full internship report (PDF)](file:///C:/Users/BeeClick/Downloads/rapport_stage_AutoExpert_version_2.pdf)**
 
 | | |
 | --- | --- |
