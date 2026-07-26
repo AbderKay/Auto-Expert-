@@ -9,7 +9,7 @@
 
 A modern, responsive web platform that digitizes the day-to-day operations of an automotive agency — online appointment booking, a personal client area, satisfaction surveys, maintenance reminders, AI-assisted quotes, and a built-in assistant. Business processes (emails, confirmations, database writes, alerts) are fully automated end-to-end with **n8n** workflows, backed by a **Supabase** database.
 
-> Built during a one-month application internship at **AHDIGITAL** (Technopark Agadir), July 2025. See the [Internship Report]((file:///C:/Users/BeeClick/Downloads/rapport_stage_AutoExpert_version_2.pdf)) section below.
+> Built during a one-month application internship at **AHDIGITAL** (Technopark Agadir), July 2025. See the [Internship Report](#(file:///C:/Users/BeeClick/Downloads/rapport_stage_AutoExpert_version_2.pdf)) section below.
 
 ---
 
